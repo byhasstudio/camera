@@ -11,6 +11,8 @@
   #view { width: 100%; height: 100%; display: block; }
   #msg { position: absolute; inset: 0; display: none; align-items: center; justify-content: center; text-align: center; padding: 24px; font-size: 15px; line-height: 1.5; }
   #zoomLabel { position: absolute; top: 14px; left: 50%; transform: translateX(-50%); padding: 4px 12px; border-radius: 14px; background: rgba(0,0,0,.5); color: #ffd54f; font-size: 14px; font-weight: 600; pointer-events: none; }
+  #lensPick { position: absolute; top: 10px; left: 10px; padding: 8px 12px; border-radius: 18px; border: 0; background: rgba(0,0,0,.55); color: #fff; font-size: 13px; }
+  #toast { position: absolute; left: 16px; right: 16px; top: 74px; padding: 10px 14px; border-radius: 10px; background: rgba(0,0,0,.75); font-size: 13px; text-align: center; opacity: 0; transition: opacity .3s; pointer-events: none; }
   #modeTag { position: absolute; top: 46px; left: 50%; transform: translateX(-50%); font-size: 11px; color: #ddd; text-shadow: 0 0 4px #000; pointer-events: none; }
   #presets { position: absolute; left: 0; right: 0; bottom: 12px; display: flex; justify-content: center; gap: 10px; }
   #presets button { min-width: 44px; height: 44px; border-radius: 22px; border: 0; background: rgba(0,0,0,.5); color: #fff; font-size: 14px; font-weight: 600; padding: 0 10px; }
@@ -45,20 +47,23 @@
   <div id="msg"></div>
   <div id="zoomLabel">1.0x</div>
   <div id="modeTag"></div>
-  <div style="position:absolute;top:14px;right:12px;font-size:11px;color:#888;pointer-events:none">v5</div>
+  <button id="lensPick">🔭 Lensa 0.5x</button>
+  <div id="toast"></div>
+  <div style="position:absolute;top:14px;right:12px;font-size:11px;color:#888;pointer-events:none">v7</div>
   <div id="presets">
     <button data-z="0.5">0.5</button>
     <button data-z="1" class="on">1x</button>
     <button data-z="2">2x</button>
-    <button data-z="3">3x</button>
     <button data-z="5">5x</button>
+    <button data-z="10">10x</button>
+    <button data-z="100">100x</button>
   </div>
 </div>
 
 <div id="bar">
   <div id="sliderRow">
     <span>Zoom</span>
-    <input id="zoomSlider" type="range" min="0" max="1000" value="301">
+    <input id="zoomSlider" type="range" min="0" max="1000" value="131">
   </div>
   <div id="btnRow">
     <button class="side" id="galleryBtn" title="Galeri">🖼️</button>
@@ -96,7 +101,7 @@
   let facing = 'environment';
   let stream = null;
 
-  const ZMIN = 0.5, ZMAX = 5;
+  const ZMIN = 0.5, ZMAX = 100;
   let zoomT = 1, zoomC = 1;   // target dan zoom saat ini (dihaluskan)
 
   /* ---------- WebGL ---------- */
@@ -203,8 +208,9 @@
 
   /* ---------- Zoom (halus) ---------- */
   const clampZ = z => Math.min(ZMAX, Math.max(ZMIN, z));
-  const zToSlider = z => Math.round(Math.log10(z / ZMIN) * 1000);
-  const sliderToZ = v => ZMIN * Math.pow(10, v / 1000);
+  const LR = Math.log(ZMAX / ZMIN);
+  const zToSlider = z => Math.round(Math.log(z / ZMIN) / LR * 1000);
+  const sliderToZ = v => ZMIN * Math.exp(v / 1000 * LR);
 
   let sliderDrag = false;
   const slider = $('zoomSlider');
@@ -236,7 +242,7 @@
   }, { passive: false });
 
   function updateUI() {
-    $('zoomLabel').textContent = zoomC.toFixed(1) + 'x';
+    $('zoomLabel').textContent = (zoomC >= 10 ? zoomC.toFixed(0) : zoomC.toFixed(1)) + 'x';
     document.querySelectorAll('#presets button').forEach(b => {
       b.classList.toggle('on', Math.abs(parseFloat(b.dataset.z) - zoomT) < 0.04);
     });
@@ -275,7 +281,7 @@
     } else if (lensState === 'hw' && hwCaps) {   // zoom out asli dari kamera
       dz = zoomC / hwApplied; kk = 0.25 * kBase; tag = 'Zoom kamera asli';
     } else {                             // simulasi: frame diperlebar dengan lipatan tepi
-      dz = zoomC >= 1 ? zoomC : 1 - 0.24 * kBase; kk = kBase; tag = 'Simulasi';
+      dz = Math.max(zoomC, 1); kk = kBase; tag = 'Simulasi (lensa asli tidak terbuka)';
     }
     $('modeTag').textContent = zoomC < 0.95 ? tag : '';
 
@@ -292,8 +298,38 @@
   let lensState = 'unknown';   // unknown | ultra | hw | none
   let wideDevice = null, wideCam = false, lensBusy = false;
   let deviceId = null, hwCaps = null, hwApplied = 1, hwLast = 0;
+  let mainId = null, pickIdx = -1;
+
+  function toast(t) {
+    const el = $('toast');
+    el.textContent = t; el.style.opacity = '1';
+    clearTimeout(toast.t);
+    toast.t = setTimeout(() => el.style.opacity = '0', 5000);
+  }
+
+  // Pilih lensa 0.5x manual: putar melalui kamera belakang selain kamera utama
+  $('lensPick').onclick = async () => {
+    if (facing !== 'environment') { toast('Ganti ke kamera belakang dulu.'); return; }
+    if (lensBusy) return;
+    const devs = (await navigator.mediaDevices.enumerateDevices())
+      .filter(d => d.kind === 'videoinput' && d.deviceId !== mainId && !/front|user|depan/i.test(d.label));
+    if (!devs.length) {
+      toast('Browser hanya membuka 1 kamera belakang. Lensa 0.5x asli tidak bisa dipakai dari halaman web di HP ini.');
+      return;
+    }
+    pickIdx = (pickIdx + 1) % devs.length;
+    wideDevice = devs[pickIdx].deviceId;
+    lensState = 'ultra';
+    zoomT = 0.5;
+    lensBusy = true;
+    deviceId = wideDevice; wideCam = true;
+    await startCamera();
+    lensBusy = false;
+    toast('Lensa ' + (pickIdx + 1) + ' dari ' + devs.length + ' aktif. Belum lebar? Tekan lagi.');
+  };
 
   function resetLens() {
+    mainId = null; pickIdx = -1;
     lensState = 'unknown'; wideDevice = null; wideCam = false;
     deviceId = null; hwCaps = null; hwApplied = 1;
   }
@@ -350,6 +386,10 @@
       video.srcObject = stream;
       await video.play();
       hwApplied = 1;
+      if (!deviceId && !mainId) {
+        const s = stream.getVideoTracks()[0].getSettings();
+        mainId = s.deviceId || null;
+      }
     } catch (e) {
       msg.style.display = 'flex';
       msg.textContent = 'Kamera tidak bisa dibuka. Izinkan akses kamera di browser, lalu muat ulang halaman. (Halaman harus dibuka lewat https.)';
