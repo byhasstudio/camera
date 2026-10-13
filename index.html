@@ -17,7 +17,7 @@
   #stabBtn { position: absolute; top: 46px; right: 10px; padding: 7px 11px; border-radius: 16px; border: 0; background: rgba(0,0,0,.55); color: #fff; font-size: 12px; }
   #stabBtn.on { background: rgba(46,125,50,.9); }
   #ver { position: absolute; top: 14px; right: 12px; font-size: 11px; color: #888; pointer-events: none; }
-  #toast { position: absolute; left: 16px; right: 16px; top: 100px; padding: 10px 14px; border-radius: 10px; background: rgba(0,0,0,.75); font-size: 13px; text-align: center; opacity: 0; transition: opacity .3s; pointer-events: none; }
+  #toast { z-index: 30; position: absolute; left: 16px; right: 16px; top: 100px; padding: 10px 14px; border-radius: 10px; background: rgba(0,0,0,.75); font-size: 13px; text-align: center; opacity: 0; transition: opacity .3s; pointer-events: none; }
   #modes { position: absolute; left: 50%; bottom: 66px; transform: translateX(-50%); display: flex; gap: 4px; background: rgba(0,0,0,.45); border-radius: 16px; padding: 3px; }
   #modes button { border: 0; background: none; color: #ccc; font-size: 12px; font-weight: 600; padding: 6px 14px; border-radius: 13px; }
   #modes button.on { background: #fff; color: #000; }
@@ -61,7 +61,7 @@
   <div id="recTimer">● 00:00</div>
   <button id="lensPick">🔭 Lensa 0.5x</button>
   <button id="stabBtn" class="on">🎯 Stabilizer: ON</button>
-  <div id="ver">v10</div>
+  <div id="ver">v11</div>
   <div id="toast"></div>
   <div id="modes">
     <button id="modePhoto" class="on">FOTO</button>
@@ -515,8 +515,8 @@
     });
   }
   const tx = m => db.transaction('photos', m).objectStore('photos');
-  const addMedia = (blob, kind) => new Promise((res, rej) => {
-    const q = tx('readwrite').add({ blob, kind: kind || 'photo', time: Date.now() });
+  const addMedia = (blob, kind, poster) => new Promise((res, rej) => {
+    const q = tx('readwrite').add({ blob, kind: kind || 'photo', time: Date.now(), poster: poster || null });
     q.onsuccess = () => res(q.result); q.onerror = () => rej(q.error);
   });
   const allMedia = () => new Promise((res, rej) => {
@@ -589,7 +589,16 @@
       if (micStream) { micStream.getTracks().forEach(t => t.stop()); micStream = null; }
       $('shutter').classList.remove('rec');
       $('recTimer').style.display = 'none';
-      if (blob.size) { await addMedia(blob, 'video'); refreshThumb(); toast('Video tersimpan di galeri.'); }
+      if (blob.size) {
+        try {
+          const poster = await new Promise(r => canvas.toBlob(b => r(b), 'image/jpeg', 0.8));
+          await addMedia(blob, 'video', poster);
+          refreshThumb();
+          toast('Video tersimpan di galeri.');
+        } catch (e) { toast('Gagal menyimpan video: ' + (e && e.message || e)); }
+      } else {
+        toast('Video kosong, tidak tersimpan. Coba rekam lebih lama.');
+      }
     };
     rec = r;
     recStart = performance.now();
@@ -614,8 +623,11 @@
     const list = await allMedia();
     const btn = $('galleryBtn');
     if (!list.length) { btn.textContent = '🖼️'; return; }
-    if (list[0].kind === 'video') { btn.textContent = '🎞️'; return; }
-    const u = URL.createObjectURL(list[0].blob);
+    const first = list[0];
+    const src = first.kind === 'video' ? first.poster : first.blob;
+    if (!src) { btn.textContent = '🎞️'; return; }
+    if (refreshThumb.u) URL.revokeObjectURL(refreshThumb.u);
+    const u = refreshThumb.u = URL.createObjectURL(src);
     btn.innerHTML = '<img src="' + u + '">';
   }
 
@@ -630,9 +642,18 @@
       const cell = document.createElement('div');
       cell.className = 'cell';
       if (p.kind === 'video') {
-        const v = document.createElement('video');
-        v.src = u + '#t=0.1'; v.muted = true; v.preload = 'metadata'; v.playsInline = true;
-        cell.appendChild(v);
+        if (p.poster) {
+          const pu = URL.createObjectURL(p.poster); urls.push(pu);
+          const im = document.createElement('img'); im.src = pu;
+          cell.appendChild(im);
+        } else {
+          const v = document.createElement('video');
+          v.muted = true; v.preload = 'auto'; v.playsInline = true;
+          v.setAttribute('playsinline', ''); v.setAttribute('muted', '');
+          v.src = u;
+          v.addEventListener('loadeddata', () => { try { v.currentTime = 0.1; } catch (e) {} });
+          cell.appendChild(v);
+        }
         const pl = document.createElement('span'); pl.className = 'play'; pl.textContent = '▶';
         cell.appendChild(pl);
       } else {
@@ -654,7 +675,19 @@
     const isVid = p.kind === 'video';
     $('vImg').style.display = isVid ? 'none' : 'block';
     $('vVid').style.display = isVid ? 'block' : 'none';
-    if (isVid) { $('vVid').src = u; }
+    if (isVid) {
+      const v = $('vVid');
+      v.onloadedmetadata = () => {
+        // WebM hasil MediaRecorder sering tanpa durasi; paksa browser menghitungnya
+        if (v.duration === Infinity) {
+          v.currentTime = 1e101;
+          v.ontimeupdate = () => { v.ontimeupdate = null; v.currentTime = 0; };
+        }
+      };
+      v.onerror = () => toast('Video tidak bisa diputar di browser ini. Coba "Simpan ke HP".');
+      v.src = u; v.load();
+      v.play().catch(() => {});
+    }
     else { $('vImg').src = u; }
     $('viewer').style.display = 'flex';
   }
