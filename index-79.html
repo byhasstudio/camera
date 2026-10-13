@@ -1,0 +1,296 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
+<title>Kamera Fisheye</title>
+<style>
+  * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+  html, body { margin: 0; height: 100%; background: #000; color: #fff; font-family: system-ui, sans-serif; overflow: hidden; }
+  #stage { position: fixed; inset: 0 0 150px 0; background: #000; }
+  #view { width: 100%; height: 100%; display: block; }
+  #msg { position: absolute; inset: 0; display: none; align-items: center; justify-content: center; text-align: center; padding: 24px; font-size: 15px; line-height: 1.5; }
+  #bar { position: fixed; left: 0; right: 0; bottom: 0; height: 150px; background: #111; padding: 10px 16px 16px; display: flex; flex-direction: column; gap: 10px; }
+  #sliderRow { display: flex; align-items: center; gap: 10px; font-size: 13px; }
+  #sliderRow input { flex: 1; }
+  #btnRow { display: flex; align-items: center; justify-content: space-between; flex: 1; }
+  .side { width: 56px; height: 56px; border-radius: 50%; border: 2px solid #444; background: #222; color: #fff; font-size: 22px; display: flex; align-items: center; justify-content: center; overflow: hidden; padding: 0; }
+  .side img { width: 100%; height: 100%; object-fit: cover; }
+  #shutter { width: 74px; height: 74px; border-radius: 50%; border: 5px solid #fff; background: #e53935; }
+  #shutter:active { transform: scale(.92); }
+  #flash { position: fixed; inset: 0; background: #fff; opacity: 0; pointer-events: none; transition: opacity .25s; z-index: 5; }
+  /* Galeri */
+  #gallery { position: fixed; inset: 0; background: #0b0b0b; display: none; flex-direction: column; z-index: 10; }
+  #gHead { display: flex; align-items: center; justify-content: space-between; padding: 12px 16px; background: #111; }
+  #gHead button { background: none; border: 0; color: #fff; font-size: 16px; padding: 6px 4px; }
+  #grid { flex: 1; overflow-y: auto; display: grid; grid-template-columns: repeat(3, 1fr); gap: 3px; padding: 3px; align-content: start; }
+  #grid img { width: 100%; aspect-ratio: 1; object-fit: cover; display: block; background: #222; }
+  #empty { padding: 40px; text-align: center; color: #888; display: none; }
+  /* Penampil foto */
+  #viewer { position: fixed; inset: 0; background: #000; display: none; flex-direction: column; z-index: 20; }
+  #viewer img { flex: 1; min-height: 0; width: 100%; object-fit: contain; }
+  #vBar { display: flex; gap: 8px; padding: 12px; background: #111; }
+  #vBar button { flex: 1; padding: 13px 0; border-radius: 10px; border: 0; font-size: 15px; color: #fff; background: #333; }
+  #vBar .save { background: #1e88e5; }
+  #vBar .del { background: #c62828; }
+</style>
+</head>
+<body>
+
+<div id="stage">
+  <canvas id="view"></canvas>
+  <div id="msg"></div>
+</div>
+
+<div id="bar">
+  <div id="sliderRow">
+    <span>Fisheye</span>
+    <input id="strength" type="range" min="0" max="100" value="60">
+  </div>
+  <div id="btnRow">
+    <button class="side" id="galleryBtn" title="Galeri">🖼️</button>
+    <button id="shutter" aria-label="Ambil foto"></button>
+    <button class="side" id="switchBtn" title="Ganti kamera">🔄</button>
+  </div>
+</div>
+
+<div id="flash"></div>
+
+<div id="gallery">
+  <div id="gHead">
+    <button id="gClose">← Kembali</button>
+    <span id="gCount"></span>
+  </div>
+  <div id="grid"></div>
+  <div id="empty">Belum ada foto.</div>
+</div>
+
+<div id="viewer">
+  <img id="vImg" alt="Foto">
+  <div id="vBar">
+    <button id="vBack">Tutup</button>
+    <button class="save" id="vSave">Simpan ke HP</button>
+    <button class="del" id="vDel">Hapus</button>
+  </div>
+</div>
+
+<video id="video" playsinline muted autoplay style="display:none"></video>
+
+<script>
+(function () {
+  const $ = id => document.getElementById(id);
+  const video = $('video'), canvas = $('view'), stage = $('stage'), msg = $('msg');
+  let facing = 'environment';
+  let stream = null;
+
+  /* ---------- WebGL fisheye ---------- */
+  const gl = canvas.getContext('webgl', { preserveDrawingBuffer: true, antialias: false });
+  if (!gl) { showMsg('Browser kamu tidak mendukung WebGL.'); return; }
+
+  const vsSrc = `
+    attribute vec2 p;
+    varying vec2 uv;
+    void main(){ uv = p; gl_Position = vec4(p, 0.0, 1.0); }`;
+  const fsSrc = `
+    precision mediump float;
+    varying vec2 uv;
+    uniform sampler2D tex;
+    uniform float k;        // kekuatan fisheye
+    uniform vec2 cover;     // skala crop agar video memenuhi layar
+    uniform float flipX;    // 1 = cermin (kamera depan)
+    void main(){
+      float r2 = dot(uv, uv);
+      vec2 d = uv * (1.0 + k * r2) / (1.0 + k * 2.0);
+      d *= cover;
+      d.x *= flipX;
+      vec2 t = d * 0.5 + 0.5;
+      t.y = 1.0 - t.y;
+      gl_FragColor = texture2D(tex, t);
+    }`;
+
+  function sh(type, src) {
+    const s = gl.createShader(type);
+    gl.shaderSource(s, src); gl.compileShader(s);
+    return s;
+  }
+  const prog = gl.createProgram();
+  gl.attachShader(prog, sh(gl.VERTEX_SHADER, vsSrc));
+  gl.attachShader(prog, sh(gl.FRAGMENT_SHADER, fsSrc));
+  gl.linkProgram(prog);
+  gl.useProgram(prog);
+
+  const buf = gl.createBuffer();
+  gl.bindBuffer(gl.ARRAY_BUFFER, buf);
+  gl.bufferData(gl.ARRAY_BUFFER, new Float32Array([-1,-1, 1,-1, -1,1, 1,1]), gl.STATIC_DRAW);
+  const loc = gl.getAttribLocation(prog, 'p');
+  gl.enableVertexAttribArray(loc);
+  gl.vertexAttribPointer(loc, 2, gl.FLOAT, false, 0, 0);
+
+  const tex = gl.createTexture();
+  gl.bindTexture(gl.TEXTURE_2D, tex);
+  gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_S, gl.CLAMP_TO_EDGE);
+  gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_T, gl.CLAMP_TO_EDGE);
+  gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.LINEAR);
+  gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.LINEAR);
+
+  const uK = gl.getUniformLocation(prog, 'k');
+  const uCover = gl.getUniformLocation(prog, 'cover');
+  const uFlip = gl.getUniformLocation(prog, 'flipX');
+
+  function resize() {
+    const dpr = Math.min(window.devicePixelRatio || 1, 2);
+    let w = Math.round(stage.clientWidth * dpr);
+    let h = Math.round(stage.clientHeight * dpr);
+    const maxSide = 1600, m = Math.max(w, h);
+    if (m > maxSide) { w = Math.round(w * maxSide / m); h = Math.round(h * maxSide / m); }
+    if (canvas.width !== w || canvas.height !== h) {
+      canvas.width = w; canvas.height = h;
+      gl.viewport(0, 0, w, h);
+    }
+  }
+  window.addEventListener('resize', resize);
+
+  function draw() {
+    requestAnimationFrame(draw);
+    if (video.readyState < 2 || !video.videoWidth) return;
+    resize();
+    gl.bindTexture(gl.TEXTURE_2D, tex);
+    gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGB, gl.RGB, gl.UNSIGNED_BYTE, video);
+
+    const ca = canvas.width / canvas.height;
+    const va = video.videoWidth / video.videoHeight;
+    let cx = 1, cy = 1;
+    if (va > ca) cx = ca / va; else cy = va / ca;   // crop ala "cover"
+
+    gl.uniform1f(uK, parseFloat($('strength').value) / 100 * 1.6);
+    gl.uniform2f(uCover, cx, cy);
+    gl.uniform1f(uFlip, facing === 'user' ? -1 : 1);
+    gl.drawArrays(gl.TRIANGLE_STRIP, 0, 4);
+  }
+
+  /* ---------- Kamera ---------- */
+  function showMsg(t) { msg.style.display = 'flex'; msg.textContent = t; }
+
+  async function startCamera() {
+    if (stream) stream.getTracks().forEach(t => t.stop());
+    msg.style.display = 'none';
+    try {
+      stream = await navigator.mediaDevices.getUserMedia({
+        video: { facingMode: { ideal: facing }, width: { ideal: 1920 }, height: { ideal: 1080 } },
+        audio: false
+      });
+      video.srcObject = stream;
+      await video.play();
+    } catch (e) {
+      showMsg('Kamera tidak bisa dibuka. Izinkan akses kamera di browser, lalu muat ulang halaman. (Halaman harus dibuka lewat https.)');
+    }
+  }
+
+  $('switchBtn').onclick = () => {
+    facing = facing === 'environment' ? 'user' : 'environment';
+    startCamera();
+  };
+
+  /* ---------- Penyimpanan galeri (IndexedDB) ---------- */
+  let db;
+  function openDB() {
+    return new Promise((res, rej) => {
+      const r = indexedDB.open('fisheye-cam', 1);
+      r.onupgradeneeded = () => r.result.createObjectStore('photos', { keyPath: 'id', autoIncrement: true });
+      r.onsuccess = () => { db = r.result; res(); };
+      r.onerror = () => rej(r.error);
+    });
+  }
+  const tx = mode => db.transaction('photos', mode).objectStore('photos');
+  const addPhoto = blob => new Promise((res, rej) => {
+    const q = tx('readwrite').add({ blob, time: Date.now() });
+    q.onsuccess = () => res(q.result); q.onerror = () => rej(q.error);
+  });
+  const allPhotos = () => new Promise((res, rej) => {
+    const q = tx('readonly').getAll();
+    q.onsuccess = () => res(q.result.sort((a, b) => b.time - a.time)); q.onerror = () => rej(q.error);
+  });
+  const delPhoto = id => new Promise((res, rej) => {
+    const q = tx('readwrite').delete(id);
+    q.onsuccess = () => res(); q.onerror = () => rej(q.error);
+  });
+
+  /* ---------- Ambil foto ---------- */
+  $('shutter').onclick = () => {
+    if (video.readyState < 2) return;
+    const f = $('flash');
+    f.style.opacity = '.8'; setTimeout(() => f.style.opacity = '0', 120);
+    canvas.toBlob(async blob => {
+      if (!blob) return;
+      await addPhoto(blob);
+      refreshThumb();
+    }, 'image/jpeg', 0.92);
+  };
+
+  /* ---------- Galeri ---------- */
+  let urls = [];
+  async function refreshThumb() {
+    const list = await allPhotos();
+    const btn = $('galleryBtn');
+    if (list.length) {
+      const u = URL.createObjectURL(list[0].blob);
+      btn.innerHTML = '<img src="' + u + '">';
+    } else btn.textContent = '🖼️';
+  }
+
+  async function openGallery() {
+    urls.forEach(u => URL.revokeObjectURL(u)); urls = [];
+    const list = await allPhotos();
+    const grid = $('grid'); grid.innerHTML = '';
+    $('gCount').textContent = list.length + ' foto';
+    $('empty').style.display = list.length ? 'none' : 'block';
+    list.forEach(p => {
+      const u = URL.createObjectURL(p.blob); urls.push(u);
+      const img = document.createElement('img');
+      img.src = u;
+      img.onclick = () => openViewer(p, u);
+      grid.appendChild(img);
+    });
+    $('gallery').style.display = 'flex';
+  }
+  $('galleryBtn').onclick = openGallery;
+  $('gClose').onclick = () => { $('gallery').style.display = 'none'; refreshThumb(); };
+
+  /* ---------- Penampil ---------- */
+  let current = null;
+  function openViewer(p, u) {
+    current = p;
+    $('vImg').src = u;
+    $('viewer').style.display = 'flex';
+  }
+  $('vBack').onclick = () => $('viewer').style.display = 'none';
+
+  $('vDel').onclick = async () => {
+    if (!current || !confirm('Hapus foto ini?')) return;
+    await delPhoto(current.id);
+    $('viewer').style.display = 'none';
+    openGallery();
+  };
+
+  $('vSave').onclick = async () => {
+    if (!current) return;
+    const name = 'fisheye-' + new Date(current.time).toISOString().replace(/[:.]/g, '-') + '.jpg';
+    const file = new File([current.blob], name, { type: 'image/jpeg' });
+    // Di HP, menu Bagikan memungkinkan "Simpan ke Galeri/Foto"
+    if (navigator.canShare && navigator.canShare({ files: [file] })) {
+      try { await navigator.share({ files: [file] }); return; } catch (e) { if (e.name === 'AbortError') return; }
+    }
+    const a = document.createElement('a');
+    a.href = URL.createObjectURL(current.blob);
+    a.download = name;
+    document.body.appendChild(a); a.click(); a.remove();
+  };
+
+  /* ---------- Mulai ---------- */
+  openDB().then(refreshThumb);
+  startCamera();
+  draw();
+})();
+</script>
+</body>
+</html>
