@@ -61,7 +61,7 @@
   <div id="recTimer">● 00:00</div>
   <button id="lensPick">🔭 Lensa 0.5x</button>
   <button id="stabBtn" class="on">🎯 Stabilizer: ON</button>
-  <div id="ver">v11</div>
+  <div id="ver">v12</div>
   <div id="toast"></div>
   <div id="modes">
     <button id="modePhoto" class="on">FOTO</button>
@@ -110,7 +110,7 @@
   </div>
 </div>
 
-<video id="video" playsinline muted autoplay style="display:none"></video>
+<video id="video" playsinline muted autoplay style="position:fixed;left:0;top:0;width:2px;height:2px;opacity:0;pointer-events:none;z-index:-1"></video>
 
 <script>
 (function () {
@@ -167,6 +167,11 @@
 
       float outside = length(max(abs(t0 - 0.5) - 0.5, 0.0));
       vec2 t = 1.0 - abs(1.0 - mod(t0, 2.0));
+
+      if (k < 0.001 && outside < 0.0001) {
+        gl_FragColor = vec4(texture2D(tex, t).rgb, 1.0);
+        return;
+      }
 
       vec2 c0 = vec2(0.5);
       float ca = 0.002 * k * r2;
@@ -356,10 +361,22 @@
   }
 
   /* ---------- Render ---------- */
+  let newFrame = true, texW = 0, texH = 0;
+  const hasRVFC = typeof video.requestVideoFrameCallback === 'function';
+  let camFrames = 0, rndFrames = 0, fpsT = performance.now();
+  if (hasRVFC) {
+    const onFrame = () => { newFrame = true; camFrames++; video.requestVideoFrameCallback(onFrame); };
+    video.requestVideoFrameCallback(onFrame);
+  }
   let last = performance.now();
   function draw(now) {
     requestAnimationFrame(draw);
     const dt = Math.min((now - last) / 1000, 0.1); last = now;
+    rndFrames++;
+    if (now - fpsT >= 1000) {
+      $('ver').textContent = 'v12 · ' + rndFrames + (hasRVFC ? '/' + camFrames : '') + ' fps';
+      rndFrames = 0; camFrames = 0; fpsT = now;
+    }
 
     zoomC += (zoomT - zoomC) * (1 - Math.exp(-dt * 10));
     if (Math.abs(zoomT - zoomC) < 0.001) zoomC = zoomT;
@@ -372,7 +389,16 @@
     stabZ += ((stabOn ? STAB_ZOOM : 1) - stabZ) * 0.15;
 
     gl.bindTexture(gl.TEXTURE_2D, tex);
-    gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGB, gl.RGB, gl.UNSIGNED_BYTE, video);
+    if (newFrame) {
+      newFrame = !hasRVFC;
+      const vw = video.videoWidth, vh = video.videoHeight;
+      if (vw !== texW || vh !== texH) {
+        gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, gl.RGBA, gl.UNSIGNED_BYTE, video);
+        texW = vw; texH = vh;
+      } else {
+        gl.texSubImage2D(gl.TEXTURE_2D, 0, 0, 0, gl.RGBA, gl.UNSIGNED_BYTE, video);
+      }
+    }
 
     const ca = canvas.width / canvas.height;
     const va = video.videoWidth / video.videoHeight;
