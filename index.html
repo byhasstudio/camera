@@ -3,13 +3,15 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
-<title>Kamera Fisheye</title>
+<title>Kamera 0.5x</title>
 <style>
   * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
   html, body { margin: 0; height: 100%; background: #000; color: #fff; font-family: system-ui, sans-serif; overflow: hidden; }
   #stage { position: fixed; inset: 0 0 150px 0; background: #000; }
   #view { width: 100%; height: 100%; display: block; }
   #msg { position: absolute; inset: 0; display: none; align-items: center; justify-content: center; text-align: center; padding: 24px; font-size: 15px; line-height: 1.5; }
+  #lensBtn { position: absolute; left: 50%; bottom: 14px; transform: translateX(-50%); min-width: 64px; padding: 8px 14px; border-radius: 20px; border: 0; background: rgba(0,0,0,.55); color: #ffd54f; font-size: 15px; font-weight: 600; }
+  #toast { position: absolute; left: 16px; right: 16px; top: 16px; padding: 10px 14px; border-radius: 10px; background: rgba(0,0,0,.7); font-size: 13px; text-align: center; opacity: 0; transition: opacity .3s; pointer-events: none; }
   #bar { position: fixed; left: 0; right: 0; bottom: 0; height: 150px; background: #111; padding: 10px 16px 16px; display: flex; flex-direction: column; gap: 10px; }
   #sliderRow { display: flex; align-items: center; gap: 10px; font-size: 13px; }
   #sliderRow input { flex: 1; }
@@ -40,12 +42,14 @@
 <div id="stage">
   <canvas id="view"></canvas>
   <div id="msg"></div>
+  <button id="lensBtn">0.5x</button>
+  <div id="toast"></div>
 </div>
 
 <div id="bar">
   <div id="sliderRow">
-    <span>Fisheye</span>
-    <input id="strength" type="range" min="0" max="100" value="60">
+    <span>Efek 0.5x</span>
+    <input id="strength" type="range" min="0" max="100" value="70">
   </div>
   <div id="btnRow">
     <button class="side" id="galleryBtn" title="Galeri">🖼️</button>
@@ -95,17 +99,23 @@
     precision mediump float;
     varying vec2 uv;
     uniform sampler2D tex;
-    uniform float k;        // kekuatan fisheye
+    uniform float k;        // kekuatan efek 0.5x (0..1)
     uniform vec2 cover;     // skala crop agar video memenuhi layar
     uniform float flipX;    // 1 = cermin (kamera depan)
     void main(){
       float r2 = dot(uv, uv);
-      vec2 d = uv * (1.0 + k * r2) / (1.0 + k * 2.0);
+      // Peregangan di pinggir gambar, ciri khas lensa ultra-wide
+      vec2 d = uv * (1.0 - 0.34 * k * r2);
       d *= cover;
       d.x *= flipX;
       vec2 t = d * 0.5 + 0.5;
       t.y = 1.0 - t.y;
-      gl_FragColor = texture2D(tex, t);
+      vec4 c = texture2D(tex, t);
+      // Pinggir sedikit gelap (vignette) dan warna sedikit lebih hidup
+      c.rgb *= 1.0 - k * 0.5 * smoothstep(0.3, 2.0, r2);
+      float luma = dot(c.rgb, vec3(0.299, 0.587, 0.114));
+      c.rgb = mix(vec3(luma), c.rgb, 1.0 + 0.18 * k);
+      gl_FragColor = c;
     }`;
 
   function sh(type, src) {
@@ -162,7 +172,7 @@
     let cx = 1, cy = 1;
     if (va > ca) cx = ca / va; else cy = va / ca;   // crop ala "cover"
 
-    gl.uniform1f(uK, parseFloat($('strength').value) / 100 * 1.6);
+    gl.uniform1f(uK, parseFloat($('strength').value) / 100);
     gl.uniform2f(uCover, cx, cy);
     gl.uniform1f(uFlip, facing === 'user' ? -1 : 1);
     gl.drawArrays(gl.TRIANGLE_STRIP, 0, 4);
@@ -171,14 +181,25 @@
   /* ---------- Kamera ---------- */
   function showMsg(t) { msg.style.display = 'flex'; msg.textContent = t; }
 
+  let deviceId = null;      // kamera tertentu (mis. ultra-wide)
+  let backList = [], backIdx = 0, wideOn = false;
+
+  function toast(t) {
+    const el = $('toast');
+    el.textContent = t; el.style.opacity = '1';
+    clearTimeout(toast.t);
+    toast.t = setTimeout(() => el.style.opacity = '0', 3500);
+  }
+
   async function startCamera() {
     if (stream) stream.getTracks().forEach(t => t.stop());
     msg.style.display = 'none';
+    const base = { width: { ideal: 1920 }, height: { ideal: 1080 } };
+    const v = deviceId
+      ? Object.assign({ deviceId: { exact: deviceId } }, base)
+      : Object.assign({ facingMode: { ideal: facing } }, base);
     try {
-      stream = await navigator.mediaDevices.getUserMedia({
-        video: { facingMode: { ideal: facing }, width: { ideal: 1920 }, height: { ideal: 1080 } },
-        audio: false
-      });
+      stream = await navigator.mediaDevices.getUserMedia({ video: v, audio: false });
       video.srcObject = stream;
       await video.play();
     } catch (e) {
@@ -186,8 +207,71 @@
     }
   }
 
+  async function listBack() {
+    const devs = (await navigator.mediaDevices.enumerateDevices()).filter(d => d.kind === 'videoinput');
+    const back = devs.filter(d => /back|rear|environment|belakang/i.test(d.label));
+    return back.length ? back : devs;
+  }
+
+  function resetLens() {
+    deviceId = null; wideOn = false; backIdx = 0;
+    $('lensBtn').textContent = '0.5x';
+  }
+
+  // Tombol 0.5x: pakai lensa ultra-wide asli kalau browser mengizinkan
+  $('lensBtn').onclick = async () => {
+    if (facing === 'user') { facing = 'environment'; resetLens(); await startCamera(); }
+
+    // Kembali ke 1x
+    if (wideOn) {
+      resetLens();
+      await startCamera();
+      toast('Kamera utama (1x)');
+      return;
+    }
+
+    backList = await listBack();
+
+    // 1) Cari kamera berlabel "ultra wide"
+    const ultra = backList.find(d => /ultra/i.test(d.label));
+    if (ultra) {
+      deviceId = ultra.deviceId; wideOn = true;
+      $('lensBtn').textContent = '1x';
+      await startCamera();
+      toast('Lensa ultra-wide 0.5x aktif');
+      return;
+    }
+
+    // 2) Coba zoom di bawah 1x (didukung sebagian HP)
+    const track = stream && stream.getVideoTracks()[0];
+    const caps = track && track.getCapabilities ? track.getCapabilities() : {};
+    if (caps.zoom && caps.zoom.min < 1) {
+      try {
+        await track.applyConstraints({ advanced: [{ zoom: caps.zoom.min }] });
+        wideOn = true;
+        $('lensBtn').textContent = '1x';
+        toast('Zoom ' + caps.zoom.min + 'x aktif');
+        return;
+      } catch (e) {}
+    }
+
+    // 3) Tidak terdeteksi otomatis: coba kamera belakang satu per satu
+    if (backList.length > 1) {
+      backIdx = (backIdx + 1) % backList.length;
+      deviceId = backList[backIdx].deviceId;
+      $('lensBtn').textContent = 'Lensa ' + (backIdx + 1) + '/' + backList.length;
+      await startCamera();
+      toast('Kamera belakang ' + (backIdx + 1) + ' dari ' + backList.length + '. Kalau belum lebar, tekan lagi.');
+      if (backIdx === 0) resetLens();
+      return;
+    }
+
+    toast('HP/browser ini tidak membuka lensa 0.5x ke halaman web. Coba pakai Chrome terbaru.');
+  };
+
   $('switchBtn').onclick = () => {
     facing = facing === 'environment' ? 'user' : 'environment';
+    resetLens();
     startCamera();
   };
 
