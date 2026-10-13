@@ -11,6 +11,7 @@
   #view { width: 100%; height: 100%; display: block; }
   #msg { position: absolute; inset: 0; display: none; align-items: center; justify-content: center; text-align: center; padding: 24px; font-size: 15px; line-height: 1.5; }
   #zoomLabel { position: absolute; top: 14px; left: 50%; transform: translateX(-50%); padding: 4px 12px; border-radius: 14px; background: rgba(0,0,0,.5); color: #ffd54f; font-size: 14px; font-weight: 600; pointer-events: none; }
+  #modeTag { position: absolute; top: 46px; left: 50%; transform: translateX(-50%); font-size: 11px; color: #ddd; text-shadow: 0 0 4px #000; pointer-events: none; }
   #presets { position: absolute; left: 0; right: 0; bottom: 12px; display: flex; justify-content: center; gap: 10px; }
   #presets button { min-width: 44px; height: 44px; border-radius: 22px; border: 0; background: rgba(0,0,0,.5); color: #fff; font-size: 14px; font-weight: 600; padding: 0 10px; }
   #presets button.on { background: rgba(255,213,79,.95); color: #000; }
@@ -44,6 +45,7 @@
   <div id="msg"></div>
   <div id="zoomLabel">1.0x</div>
   <div id="modeTag"></div>
+  <div style="position:absolute;top:14px;right:12px;font-size:11px;color:#888;pointer-events:none">v5</div>
   <div id="presets">
     <button data-z="0.5">0.5</button>
     <button data-z="1" class="on">1x</button>
