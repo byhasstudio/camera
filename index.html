@@ -221,11 +221,11 @@
       float r = length(uv);
       // Tengah gambar dikecilkan (terlihat menjauh), makin ke tepi makin normal.
       // Tepi tetap pas dengan frame kamera, jadi tidak ada area kosong atau blur.
-      float f = 1.0 + 1.0 * k * (1.0 - smoothstep(0.0, 1.0, r));
+      float f = 1.0 + 0.45 * k * (1.0 - smoothstep(0.0, 1.0, r));
       vec2 d = uv * f / zoomD;
       vec2 t = clamp(toTex(d) - shift, 0.0, 1.0);
       vec3 col = texture2D(tex, t).rgb;
-      col *= 1.0 - k * 0.2 * smoothstep(0.5, 1.5, r);
+      col *= 1.0 - k * 0.1 * smoothstep(0.5, 1.5, r);
       gl_FragColor = vec4(col, 1.0);
     }`;
 
@@ -1047,7 +1047,7 @@
   };
 
   /* ---------- Auto-update: cek versi terbaru, lalu muat ulang paksa otomatis ---------- */
-  const APP_VERSION = 'v17';
+  const APP_VERSION = 'v18';
   $('ver').textContent = APP_VERSION;
   const vnum = v => parseInt(String(v).replace(/\D/g, ''), 10) || 0;
   let updating = false;
