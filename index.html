@@ -190,7 +190,7 @@
   }
 
   /* ---------- WebGL ---------- */
-  const gl = canvas.getContext('webgl', { preserveDrawingBuffer: true, antialias: false });
+  const gl = canvas.getContext('webgl', { preserveDrawingBuffer: true, antialias: false, powerPreference: 'high-performance' });
   if (!gl) { msg.style.display = 'flex'; msg.textContent = 'Browser kamu tidak mendukung WebGL.'; return; }
 
   const vsSrc = `
@@ -207,9 +207,7 @@
     uniform vec2 cover;
     uniform float flipX;
     uniform vec2 texel;
-    uniform vec2 shift;     // koreksi stabilizer (pecahan frame video)
-
-    vec3 S(vec2 q){ return texture2D(tex, q).rgb; }
+    uniform vec2 shift;
 
     vec2 toTex(vec2 d){
       d *= cover;
@@ -220,41 +218,14 @@
     }
 
     void main(){
-      float r2 = dot(uv, uv);
-      vec2 d = uv * (1.0 + 0.12 * k * r2) / zoomD;
-      vec2 t0 = toTex(d) - shift;
-
-      float outside = length(max(abs(t0 - 0.5) - 0.5, 0.0));
-      vec2 t = 1.0 - abs(1.0 - mod(t0, 2.0));
-
-      vec2 c0 = vec2(0.5);
-      float ca = 0.002 * k * r2;
-      vec2 tr = clamp(c0 + (t - c0) * (1.0 + ca), 0.0, 1.0);
-      vec2 tb = clamp(c0 + (t - c0) * (1.0 - ca), 0.0, 1.0);
-
-      vec2 o = texel * (k * r2 * 0.6);
-      float g = (texture2D(tex, t).g * 2.0
-               + texture2D(tex, t + vec2(o.x, 0.0)).g
-               + texture2D(tex, t - vec2(o.x, 0.0)).g
-               + texture2D(tex, t + vec2(0.0, o.y)).g
-               + texture2D(tex, t - vec2(0.0, o.y)).g) / 6.0;
-      vec3 col = vec3(texture2D(tex, tr).r, g, texture2D(tex, tb).b);
-
-      if (outside > 0.0) {
-        // area di luar frame kamera: versi buram dari tepi video (cincin titik)
-        vec2 o1 = texel * (10.0 + outside * 220.0);
-        vec2 o2 = o1 * 2.2;
-        vec3 s = S(t);
-        s += S(t + vec2(o1.x, 0.0)) + S(t - vec2(o1.x, 0.0)) + S(t + vec2(0.0, o1.y)) + S(t - vec2(0.0, o1.y));
-        s += S(t + o1 * 0.7) + S(t - o1 * 0.7) + S(t + vec2(o1.x, -o1.y) * 0.7) + S(t + vec2(-o1.x, o1.y) * 0.7);
-        s += S(t + vec2(o2.x, 0.0)) + S(t - vec2(o2.x, 0.0)) + S(t + vec2(0.0, o2.y)) + S(t - vec2(0.0, o2.y));
-        s += S(t + o2 * 0.7) + S(t - o2 * 0.7) + S(t + vec2(o2.x, -o2.y) * 0.7) + S(t + vec2(-o2.x, o2.y) * 0.7);
-        s /= 17.0;
-        col = mix(col, s, smoothstep(0.0, 0.015, outside));
-      }
-
-      col *= 1.0 - k * 0.22 * smoothstep(0.3, 2.0, r2);
-      col *= 1.0 - min(outside * 2.5, 0.4);
+      float r = length(uv);
+      // Tengah gambar dikecilkan (terlihat menjauh), makin ke tepi makin normal.
+      // Tepi tetap pas dengan frame kamera, jadi tidak ada area kosong atau blur.
+      float f = 1.0 + 1.0 * k * (1.0 - smoothstep(0.0, 1.0, r));
+      vec2 d = uv * f / zoomD;
+      vec2 t = clamp(toTex(d) - shift, 0.0, 1.0);
+      vec3 col = texture2D(tex, t).rgb;
+      col *= 1.0 - k * 0.2 * smoothstep(0.5, 1.5, r);
       gl_FragColor = vec4(col, 1.0);
     }`;
 
@@ -304,7 +275,8 @@
       gl.viewport(0, 0, w, h);
     }
   }
-  window.addEventListener('resize', resize);
+  let needResize = true;
+  window.addEventListener('resize', () => { needResize = true; });
 
   /* ---------- Stabilizer real-time (estimasi gerak antar frame) ---------- */
   const SW = 128, SH = 96, SR = 4;            // resolusi analisis dan jangkauan cari (piksel)
@@ -493,41 +465,61 @@
     c.beginPath(); c.moveTo(cx, cy - dR - 8); c.lineTo(cx, cy - dR + 32); c.stroke();
   }
 
+  const presetBtns = Array.from(document.querySelectorAll('#presets button[data-z]'));
+  const zoomLabelEl = $('zoomLabel'), dialBtnEl = $('dialBtn'), recTimerEl = $('recTimer'), dialValEl = $('dialVal');
+  let uiZoomTxt = '', uiOn = -2, uiBig = null, uiBigTxt = '', uiRecS = -1;
+
   function updateUI() {
-    $('zoomLabel').textContent = (zoomC >= 10 ? zoomC.toFixed(0) : zoomC.toFixed(1)) + 'x';
-    document.querySelectorAll('#presets button[data-z]').forEach(b => {
-      b.classList.toggle('on', Math.abs(parseFloat(b.dataset.z) - zoomT) < 0.04);
-    });
+    const zt = (zoomC >= 10 ? zoomC.toFixed(0) : zoomC.toFixed(1)) + 'x';
+    if (zt !== uiZoomTxt) { uiZoomTxt = zt; zoomLabelEl.textContent = zt; }
+    let on = -1;
+    for (let i = 0; i < presetBtns.length; i++) {
+      if (Math.abs(parseFloat(presetBtns[i].dataset.z) - zoomT) < 0.04) on = i;
+    }
+    if (on !== uiOn) { uiOn = on; presetBtns.forEach((b, i) => b.classList.toggle('on', i === on)); }
     const big = zoomT > 10.04;
-    $('dialBtn').classList.toggle('on', big);
-    $('dialBtn').textContent = big ? Math.round(zoomC) + 'x' : '11–100';
-    if (dialOpen) {
-      drawDial();
-      $('dialVal').textContent = (zoomC >= 10 ? zoomC.toFixed(1) : zoomC.toFixed(1)) + 'x';
-    }
-    if (!sliderDrag) slider.value = zToSlider(zoomC);
+    if (big !== uiBig) { uiBig = big; dialBtnEl.classList.toggle('on', big); }
+    const bt = big ? Math.round(zoomC) + 'x' : '11–100';
+    if (bt !== uiBigTxt) { uiBigTxt = bt; dialBtnEl.textContent = bt; }
+    if (dialOpen) { drawDial(); dialValEl.textContent = zoomC.toFixed(1) + 'x'; }
     if (rec) {
-      const s = Math.floor((performance.now() - recStart) / 1000);
-      $('recTimer').textContent = '● ' + String(Math.floor(s / 60)).padStart(2, '0') + ':' + String(s % 60).padStart(2, '0');
-    }
+      const sec = Math.floor((performance.now() - recStart) / 1000);
+      if (sec !== uiRecS) {
+        uiRecS = sec;
+        recTimerEl.textContent = '● ' + String(Math.floor(sec / 60)).padStart(2, '0') + ':' + String(sec % 60).padStart(2, '0');
+      }
+    } else uiRecS = -1;
   }
 
   /* ---------- Render ---------- */
   let last = performance.now();
+  let lnC = 0, lnV = 0, texVT = -1, texW = 0, modeTagTxt = '';
   function draw(now) {
     requestAnimationFrame(draw);
     const dt = Math.min((now - last) / 1000, 0.1); last = now;
 
-    zoomC += (zoomT - zoomC) * (1 - Math.exp(-dt * 10));
-    if (Math.abs(zoomT - zoomC) < 0.001) zoomC = zoomT;
+    {
+      const lt = Math.log(zoomT);
+      const st = (pinch || dd) ? 0.07 : 0.22;          // waktu penghalusan: cepat saat jari menyentuh
+      const om = 2 / st, x = om * dt;
+      const e = 1 / (1 + x + 0.48 * x * x + 0.235 * x * x * x);
+      const ch = lnC - lt, tmp = (lnV + om * ch) * dt;
+      lnV = (lnV - om * tmp) * e;
+      lnC = lt + (ch + tmp) * e;
+      if (Math.abs(lt - lnC) < 0.0003 && Math.abs(lnV) < 0.001) { lnC = lt; lnV = 0; }
+      zoomC = Math.exp(lnC);
+    }
     updateUI();
     manageLens(now);
 
     if (video.readyState < 2 || !video.videoWidth) return;
-    resize();
+    if (needResize && !rec) { resize(); needResize = false; }
 
     gl.bindTexture(gl.TEXTURE_2D, tex);
-    gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGB, gl.RGB, gl.UNSIGNED_BYTE, video);
+    if (video.currentTime !== texVT || video.videoWidth !== texW) {
+      texVT = video.currentTime; texW = video.videoWidth;
+      gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGB, gl.RGB, gl.UNSIGNED_BYTE, video);
+    }
 
     const ca = canvas.width / canvas.height;
     const va = video.videoWidth / video.videoHeight;
@@ -543,9 +535,10 @@
     } else if (lensState === 'hw' && hwCaps) {
       dz = zoomC / hwApplied; kk = 0.25 * kBase; tag = 'Zoom kamera asli';
     } else {
-      dz = zoomC >= 1 ? zoomC : 1 - 0.2 * kBase; kk = kBase; tag = 'Simulasi (lensa asli tidak terbuka)';
+      dz = Math.max(zoomC, 1); kk = kBase; tag = 'Simulasi (lensa asli tidak terbuka)';
     }
-    $('modeTag').textContent = zoomC < 0.95 ? tag : '';
+    const mtt = zoomC < 0.95 ? tag : '';
+    if (mtt !== modeTagTxt) { modeTagTxt = mtt; $('modeTag').textContent = mtt; }
     if (rec) recLog.push({ t: (now - recStart) / 1000, k: kk, dz: dz });
 
     gl.uniform1f(uK, kk);
@@ -944,7 +937,7 @@
       const type = (r.mimeType || mime || 'video/webm').split(';')[0];
       const blob = new Blob(recChunks, { type });
       const durSec = (performance.now() - recStart) / 1000;
-      rec = null;
+      rec = null; needResize = true;
       if (micStream) { micStream.getTracks().forEach(t => t.stop()); micStream = null; }
       $('shutter').classList.remove('rec');
       $('recTimer').style.display = 'none';
@@ -1054,7 +1047,7 @@
   };
 
   /* ---------- Auto-update: cek versi terbaru, lalu muat ulang paksa otomatis ---------- */
-  const APP_VERSION = 'v15';
+  const APP_VERSION = 'v17';
   $('ver').textContent = APP_VERSION;
   const vnum = v => parseInt(String(v).replace(/\D/g, ''), 10) || 0;
   let updating = false;
