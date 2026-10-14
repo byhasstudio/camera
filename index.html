@@ -21,8 +21,9 @@
   #stabBtn.on { background: rgba(46,125,50,.9); }
   #ver { position: absolute; top: 14px; right: 12px; font-size: 11px; color: #888; pointer-events: none; }
   #toast { position: absolute; left: 16px; right: 16px; top: 100px; padding: 10px 14px; border-radius: 10px; background: rgba(0,0,0,.75); font-size: 13px; text-align: center; opacity: 0; transition: opacity .3s; pointer-events: none; }
-  #modes { position: absolute; left: 50%; bottom: 66px; transform: translateX(-50%); display: flex; gap: 4px; background: rgba(0,0,0,.45); border-radius: 16px; padding: 3px; }
-  #modes button { border: 0; background: none; color: #ccc; font-size: 12px; font-weight: 600; padding: 6px 14px; border-radius: 13px; }
+  #modes { position: absolute; left: 50%; bottom: 66px; transform: translateX(-50%); display: flex; gap: 2px; background: rgba(0,0,0,.45); border-radius: 16px; padding: 3px; max-width: 96vw; overflow-x: auto; scrollbar-width: none; }
+  #modes::-webkit-scrollbar { display: none; }
+  #modes button { border: 0; background: none; color: #ccc; font-size: 12px; font-weight: 600; padding: 6px 9px; border-radius: 13px; white-space: nowrap; flex: none; }
   #modes button.on { background: #fff; color: #000; }
   #presets { position: absolute; left: 0; right: 0; bottom: 12px; display: flex; justify-content: center; gap: 6px; }
   #presets button { min-width: 40px; height: 44px; border-radius: 22px; border: 0; background: rgba(0,0,0,.5); color: #fff; font-size: 14px; font-weight: 600; padding: 0 8px; }
@@ -83,24 +84,323 @@
   #vBar button { flex: 1; padding: 13px 0; border-radius: 10px; border: 0; font-size: 15px; color: #fff; background: #333; }
   #vBar .save { background: #1e88e5; }
   #vBar .del { background: #c62828; }
+  #thirds { position: absolute; inset: 0; display: none; pointer-events: none;
+    background-image:
+      linear-gradient(to right, transparent calc(33.333% - .5px), rgba(255,255,255,.4) calc(33.333% - .5px), rgba(255,255,255,.4) calc(33.333% + .5px), transparent calc(33.333% + .5px), transparent calc(66.666% - .5px), rgba(255,255,255,.4) calc(66.666% - .5px), rgba(255,255,255,.4) calc(66.666% + .5px), transparent calc(66.666% + .5px)),
+      linear-gradient(to bottom, transparent calc(33.333% - .5px), rgba(255,255,255,.4) calc(33.333% - .5px), rgba(255,255,255,.4) calc(33.333% + .5px), transparent calc(33.333% + .5px), transparent calc(66.666% - .5px), rgba(255,255,255,.4) calc(66.666% - .5px), rgba(255,255,255,.4) calc(66.666% + .5px), transparent calc(66.666% + .5px)); }
+  #panel { position: absolute; left: 10px; right: 10px; bottom: 104px; display: none; flex-direction: column; gap: 8px; padding: 10px 12px; border-radius: 16px; background: rgba(0,0,0,.58); font-size: 12px; max-height: 44%; overflow-y: auto; }
+  #panel .pbox { display: none; flex-direction: column; gap: 8px; }
+  #panel .row { display: flex; align-items: center; gap: 8px; }
+  #panel .row span { min-width: 44px; color: #ccc; }
+  #panel .row b { min-width: 46px; text-align: right; color: #ffd54f; font-weight: 600; }
+  #panel input[type=range] { flex: 1; min-width: 0; }
+  #panel button { border: 0; border-radius: 12px; background: rgba(255,255,255,.14); color: #fff; font-size: 12px; font-weight: 600; padding: 6px 10px; }
+  #panel button.on { background: rgba(255,213,79,.95); color: #000; }
+  #pNight { line-height: 1.5; color: #ddd; }
+  #panel .cg { display: flex; gap: 5px; flex: 1; flex-wrap: wrap; }
+  #panel .cg button { flex: 1; min-width: 44px; }
+  #panel .cg button:disabled { opacity: .35; }
+  #vInfo { color: #ffd54f; font-size: 11px; line-height: 1.45; }
+  #vNote { color: #aaa; font-size: 11px; line-height: 1.45; }
+  #longOv { position: absolute; inset: 0; width: 100%; height: 100%; display: none; pointer-events: none; }
+  #voiceBtn { left: auto; right: 10px; top: 118px; }
+  #chips { display: flex; gap: 6px; overflow-x: auto; padding-bottom: 2px; scrollbar-width: none; }
+  #chips::-webkit-scrollbar { display: none; }
+  .chip { display: flex; flex-direction: column; align-items: center; min-width: 56px; line-height: 1.25; flex: none; }
+  .chip small { font-size: 10px; opacity: .75; font-weight: 500; }
+  .chip.man small { color: #ffd54f; opacity: 1; }
+  .chip.on.man small { color: #000; }
+  #hist { width: 96px; height: 32px; align-self: flex-end; background: rgba(255,255,255,.07); border-radius: 6px; }
+  #proNote { display: none; color: #999; font-size: 11px; line-height: 1.4; }
+  #focusRing { position: absolute; width: 72px; height: 72px; margin: -36px 0 0 -36px; border: 2px solid #ffd54f; border-radius: 50%; opacity: 0; transform: scale(1.4); pointer-events: none; transition: opacity .25s, transform .25s; }
+  #focusRing.show { opacity: 1; transform: scale(1); }
+  #nightHud { position: absolute; left: 50%; top: 34%; transform: translateX(-50%); display: none; min-width: 220px; padding: 12px 16px; border-radius: 14px; background: rgba(0,0,0,.65); text-align: center; font-size: 14px; pointer-events: none; }
+  #nightBar { height: 6px; width: 0; margin-top: 10px; border-radius: 3px; background: linear-gradient(90deg, #7e57c2, #ffd54f); transition: width .2s; }
+  #nightTrack { height: 6px; border-radius: 3px; background: rgba(255,255,255,.15); margin-top: 10px; overflow: hidden; }
+  #nightTrack #nightBar { margin-top: 0; }
+  .tbtn { position: absolute; left: 10px; padding: 7px 11px; border-radius: 16px; border: 0; background: rgba(0,0,0,.55); color: #fff; font-size: 12px; }
+  .tbtn.on { background: rgba(46,125,50,.9); }
+  #torchBtn { top: 46px; } #timerBtn { top: 82px; } #styleBtn { top: 118px; }
+  #hdBtn { left: auto; right: 10px; top: 82px; display: none; }
+  #level { position: absolute; left: 50%; top: 50%; width: 0; height: 0; display: none; pointer-events: none; }
+  #level::before, #level::after { content: ''; position: absolute; top: -1px; width: 34px; height: 2px; background: rgba(255,255,255,.55); }
+  #level::before { left: -110px; } #level::after { left: 76px; }
+  #level i { position: absolute; left: -60px; top: -1px; width: 120px; height: 2px; background: rgba(255,255,255,.85); }
+  #level.ok i, #level.ok::before, #level.ok::after { background: #ffd54f; }
+  #cdown { position: absolute; left: 0; right: 0; top: 30%; text-align: center; font-size: 96px; font-weight: 700; text-shadow: 0 0 14px #000; display: none; pointer-events: none; }
+  #scenes { position: fixed; inset: 0; z-index: 8; display: none; align-items: flex-end; background: rgba(0,0,0,.5); }
+  #scenes .sheet { width: 100%; max-height: 74%; overflow-y: auto; background: #151515; border-radius: 20px 20px 0 0; padding: 14px 12px 22px; }
+  #scenes .shHead { display: flex; align-items: center; justify-content: space-between; margin: 0 4px 4px; font-size: 16px; }
+  #scClose { width: 34px; height: 34px; border-radius: 17px; border: 0; background: #2a2a2a; color: #fff; font-size: 15px; }
+  .scat { font-size: 12px; color: #aaa; margin: 14px 4px 6px; letter-spacing: .3px; }
+  .sgrid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; }
+  .scard { border: 0; border-radius: 14px; background: #262626; color: #fff; padding: 10px 5px; display: flex; flex-direction: column; align-items: center; gap: 4px; font-size: 12px; font-weight: 600; text-align: center; }
+  .scard .e { font-size: 28px; line-height: 1.1; }
+  .scard small { font-size: 10px; color: #999; font-weight: 400; line-height: 1.25; }
+  .scard.on { background: rgba(255,213,79,.95); color: #000; }
+  .scard.on small { color: #333; }
+  #cropMask { position: absolute; inset: 0; overflow: hidden; pointer-events: none; display: none; }
+  #cropWin { position: absolute; box-shadow: 0 0 0 9999px rgba(0,0,0,.55); border: 1px solid rgba(255,255,255,.45); }
+  #ratioBtn { left: auto; right: 10px; top: 46px; display: none; }
+  #scanCv { position: absolute; inset: 0; width: 100%; height: 100%; pointer-events: none; }
+  #sflash { position: fixed; inset: 0; background: #fff7ea; display: none; z-index: 40; }
+  #panoHud { position: absolute; left: 50%; top: 20%; transform: translateX(-50%); display: none; width: min(86vw, 320px); padding: 10px 12px; border-radius: 14px; background: rgba(0,0,0,.65); text-align: center; font-size: 13px; pointer-events: none; }
+  #panoMini { width: 100%; height: 44px; margin-top: 8px; background: rgba(255,255,255,.08); border-radius: 6px; display: block; }
+  #panoTrack { height: 5px; border-radius: 3px; background: rgba(255,255,255,.15); margin-top: 8px; overflow: hidden; }
+  #panoBar { height: 100%; width: 0; background: linear-gradient(90deg, #26c6da, #ffd54f); }
+  #scanRes { display: none; flex-direction: column; gap: 8px; }
+
+  /* ===== Animasi halus di seluruh sistem ===== */
+  :root { --ease: cubic-bezier(.22, 1, .36, 1); --spring: cubic-bezier(.34, 1.56, .64, 1); }
+  button { transition: background-color .25s var(--ease), color .25s var(--ease), transform .2s var(--ease), opacity .25s var(--ease), box-shadow .25s var(--ease); }
+  button:active { transform: scale(.94); }
+  input[type=range] { accent-color: #ffd54f; }
+  #modes { scroll-behavior: smooth; }
+  #modes button.on { box-shadow: 0 2px 12px rgba(255,255,255,.28); transform: scale(1.05); }
+  #presets button.on { transform: scale(1.1); transition: transform .3s var(--spring), background-color .25s var(--ease), color .25s var(--ease); }
+  #shutter { transition: transform .28s var(--spring), border-radius .32s var(--ease), background-color .25s var(--ease), border-color .25s var(--ease); }
+  .side.pop { animation: thumbPop .5s var(--spring); }
+  .side.spin { animation: spin .55s var(--ease); }
+  #toast { transform: translateY(-12px) scale(.97); transition: opacity .35s var(--ease), transform .45s var(--spring); }
+  #toast.show { transform: none; }
+  #panel { animation: sheetUp .38s var(--ease); }
+  #panel .pbox { animation: fadeUp .32s var(--ease); }
+  #dial { animation: sheetUp .38s var(--ease); }
+  #nightHud, #panoHud, #zoomLabel, #modeTag { animation: hudIn .35s var(--spring); }
+  #recTimer { animation: hudIn .35s var(--spring), recGlow 1.5s ease-in-out .35s infinite; }
+  #proc { animation: fadeIn .28s var(--ease); }
+  #gallery { animation: slideIn .34s var(--ease); }
+  #gallery.out { animation: slideOut .24s var(--ease) forwards; }
+  #viewer { animation: zoomIn .32s var(--ease); }
+  #viewer.out { animation: zoomOut .22s var(--ease) forwards; }
+  #scenes { animation: fadeIn .26s var(--ease); }
+  #scenes .sheet { animation: sheetUp2 .4s var(--ease); }
+  #scenes.out { animation: fadeOut .24s var(--ease) forwards; }
+  #scenes.out .sheet { animation: sheetDown .24s var(--ease) forwards; }
+  .cell { animation: cellIn .45s var(--ease) both; transition: transform .2s var(--ease); }
+  .cell:active { transform: scale(.95); }
+  #view.swap { animation: viewSwap .45s var(--ease); }
+  #panel { transition: opacity .3s var(--ease), transform .35s var(--ease); }
+  #panel.hid { opacity: 0; transform: translateY(26px) scale(.98); pointer-events: none; }
+  #panelToggle { position: absolute; right: 10px; bottom: 108px; z-index: 3; display: none; padding: 6px 12px; border-radius: 16px; border: 0; background: rgba(0,0,0,.62); color: #fff; font-size: 12px; font-weight: 600; transition: bottom .35s var(--ease), background-color .25s var(--ease), transform .2s var(--ease); }
+  .cell:nth-child(1) { animation-delay: 22ms; }
+  .cell:nth-child(2) { animation-delay: 44ms; }
+  .cell:nth-child(3) { animation-delay: 66ms; }
+  .cell:nth-child(4) { animation-delay: 88ms; }
+  .cell:nth-child(5) { animation-delay: 110ms; }
+  .cell:nth-child(6) { animation-delay: 132ms; }
+  .cell:nth-child(7) { animation-delay: 154ms; }
+  .cell:nth-child(8) { animation-delay: 176ms; }
+  .cell:nth-child(9) { animation-delay: 198ms; }
+  .cell:nth-child(10) { animation-delay: 220ms; }
+  .cell:nth-child(11) { animation-delay: 242ms; }
+  .cell:nth-child(12) { animation-delay: 264ms; }
+  .cell:nth-child(13) { animation-delay: 286ms; }
+  .cell:nth-child(14) { animation-delay: 308ms; }
+  .cell:nth-child(15) { animation-delay: 330ms; }
+  .cell:nth-child(16) { animation-delay: 352ms; }
+  .cell:nth-child(17) { animation-delay: 374ms; }
+  .cell:nth-child(18) { animation-delay: 396ms; }
+  @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
+  @keyframes fadeOut { from { opacity: 1; } to { opacity: 0; } }
+  @keyframes fadeUp { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; transform: none; } }
+  @keyframes sheetUp { from { opacity: 0; transform: translateY(18px) scale(.98); } to { opacity: 1; transform: none; } }
+  @keyframes sheetUp2 { from { transform: translateY(100%); } to { transform: none; } }
+  @keyframes sheetDown { from { transform: none; } to { transform: translateY(100%); } }
+  @keyframes hudIn { from { opacity: 0; transform: translateX(-50%) scale(.9); } to { opacity: 1; transform: translateX(-50%) scale(1); } }
+  @keyframes recGlow { 0%, 100% { box-shadow: 0 0 0 0 rgba(229,57,53,.55); } 50% { box-shadow: 0 0 0 8px rgba(229,57,53,0); } }
+  @keyframes slideIn { from { opacity: 0; transform: translateX(28px); } to { opacity: 1; transform: none; } }
+  @keyframes slideOut { from { opacity: 1; transform: none; } to { opacity: 0; transform: translateX(28px); } }
+  @keyframes zoomIn { from { opacity: 0; transform: scale(.94); } to { opacity: 1; transform: none; } }
+  @keyframes zoomOut { from { opacity: 1; transform: none; } to { opacity: 0; transform: scale(.94); } }
+  @keyframes cellIn { from { opacity: 0; transform: scale(.88) translateY(8px); } to { opacity: 1; transform: none; } }
+  @keyframes thumbPop { 0% { transform: scale(.7); } 60% { transform: scale(1.14); } 100% { transform: scale(1); } }
+  @keyframes spin { from { transform: rotate(0); } to { transform: rotate(360deg); } }
+  @keyframes viewSwap { from { filter: blur(9px) brightness(.8); transform: scale(1.035); } to { filter: none; transform: none; } }
+  @media (prefers-reduced-motion: reduce) { *, *::before, *::after { animation-duration: .01ms !important; animation-delay: 0s !important; transition-duration: .01ms !important; } }
+
+  /* ===== Gaya gerak ala iOS: kurva pegas, material kaca, geser untuk menutup ===== */
+  :root { --ease: cubic-bezier(.32, .72, 0, 1); --spring: cubic-bezier(.3, 1.4, .5, 1); --ios: cubic-bezier(.32, .72, 0, 1); }
+  button { transition: transform .45s var(--spring), opacity .3s var(--ease), background-color .3s var(--ease), color .3s var(--ease), box-shadow .3s var(--ease); -webkit-user-select: none; user-select: none; }
+  button:active { transform: scale(.94); opacity: .72; transition-duration: .08s; }
+  #shutter:active { transform: scale(.9); opacity: 1; }
+  #shutter.rec:active { transform: scale(.74); }
+  #panel, #modes, .tbtn, #panelToggle, #toast { -webkit-backdrop-filter: blur(14px) saturate(1.5); backdrop-filter: blur(14px) saturate(1.5); }
+  #modes { position: absolute; }
+  #modes button { position: relative; z-index: 1; }
+  #modes button.on { background: transparent; box-shadow: none; transform: none; color: #000; }
+  #modes button.on:active { transform: scale(.94); }
+  #modePill { position: absolute; left: 0; top: 0; width: 0; height: 0; border-radius: 13px; background: #fff; box-shadow: 0 2px 10px rgba(0,0,0,.3); z-index: 0; pointer-events: none; transition: transform .55s var(--spring), width .55s var(--spring), height .3s var(--ease); will-change: transform, width; }
+  #modePill.still { transition: none; }
+  #toast { transform: translateY(-26px) scale(.96); transition: opacity .3s var(--ease), transform .55s var(--spring); }
+  #toast.show { transform: none; }
+  #panel { animation: sheetUp .55s var(--spring); }
+  #panel .pbox { animation: fadeUp .45s var(--ease); }
+  #panel, #scenes .sheet, #viewer { will-change: transform; }
+  #gallery { animation: slideIn .5s var(--ios); }
+  #gallery.out { animation: slideOut .38s var(--ios) forwards; }
+  #viewer { animation: zoomIn .45s var(--ios); }
+  #viewer.out { animation: zoomOut .3s var(--ios) forwards; }
+  #scenes .sheet { animation: sheetUp2 .55s var(--ios); }
+  #scenes.out .sheet { animation: sheetDown .36s var(--ios) forwards; }
+  .dragging { animation: none !important; }
+  @keyframes sheetUp { from { opacity: 0; transform: translateY(26px) scale(.97); } to { opacity: 1; transform: none; } }
+  @keyframes slideIn { from { opacity: 1; transform: translateX(100%); } to { opacity: 1; transform: none; } }
+  @keyframes slideOut { from { opacity: 1; transform: none; } to { opacity: 1; transform: translateX(100%); } }
+  @keyframes zoomIn { from { opacity: 0; transform: scale(.9); } to { opacity: 1; transform: none; } }
+  @keyframes zoomOut { from { opacity: 1; transform: none; } to { opacity: 0; transform: scale(.9); } }
+  @keyframes cellIn { from { opacity: 0; transform: scale(.82); } to { opacity: 1; transform: none; } }
+  @keyframes thumbPop { 0% { transform: scale(.6); } 55% { transform: scale(1.18); } 100% { transform: scale(1); } }
+  @keyframes hudIn { from { opacity: 0; transform: translateX(-50%) scale(.82); } to { opacity: 1; transform: translateX(-50%) scale(1); } }
+  @keyframes viewSwap { from { filter: blur(14px) brightness(.7) saturate(.8); transform: scale(1.05); } to { filter: none; transform: none; } }
+  @media (prefers-reduced-motion: reduce) { *, *::before, *::after { animation-duration: .01ms !important; animation-delay: 0s !important; transition-duration: .01ms !important; } }
+
+  /* ===== Animasi seluruh sistem: masuk + keluar untuk SEMUA elemen ===== */
+  @keyframes uiIn { from { opacity: 0; scale: .9; translate: 0 8px; } to { opacity: 1; scale: 1; translate: 0 0; } }
+  @keyframes uiOut { from { opacity: 1; scale: 1; translate: 0 0; } to { opacity: 0; scale: .92; translate: 0 6px; } }
+  @keyframes fadeDown { from { opacity: 0; translate: 0 -14px; } to { opacity: 1; translate: 0 0; } }
+  @keyframes barIn { from { opacity: 0; translate: 0 100%; } to { opacity: 1; translate: 0 0; } }
+  @keyframes tick { from { opacity: 0; scale: 1.7; } to { opacity: 1; scale: 1; } }
+  @keyframes shot { 0% { scale: .8; box-shadow: 0 0 0 0 rgba(255,255,255,.65); } 100% { scale: 1; box-shadow: 0 0 0 20px rgba(255,255,255,0); } }
+  @keyframes chipPop { 0% { scale: .8; } 60% { scale: 1.1; } 100% { scale: 1; } }
+  :where(.tbtn, #lensPick, #stabBtn, #presets, #sliderRow, #modes, #scanRes, #scanMsg, #msg, #empty, #panelToggle) { animation: uiIn .5s var(--spring) backwards; }
+  :where(#cdown) { animation: uiIn .4s var(--spring) backwards; }
+  :where(#thirds, #cropMask) { animation: fadeIn .35s var(--ios) backwards; }
+  :where(#bar) { animation: barIn .65s var(--ios) backwards; }
+  :where(#bar #btnRow > *) { animation: uiIn .7s var(--spring) backwards; }
+  :where(#presets > button) { animation: uiIn .55s var(--spring) backwards; }
+  :where(.pbox:not(#pVideo):not(#pLong):not(#pDoc) > *) { animation: fadeUp .5s var(--ios) backwards; }
+  :where(#gHead) { animation: fadeDown .5s var(--ios) backwards; }
+  :where(#vBar button) { animation: uiIn .55s var(--spring) backwards; }
+  :where(.scard) { animation: cellIn .5s var(--ios) backwards; }
+  :where(#bar #btnRow > *):nth-child(1) { animation-delay: 60ms; }
+  :where(#bar #btnRow > *):nth-child(2) { animation-delay: 130ms; }
+  :where(#bar #btnRow > *):nth-child(3) { animation-delay: 200ms; }
+  :where(#presets > button):nth-child(1) { animation-delay: 0ms; }
+  :where(#presets > button):nth-child(2) { animation-delay: 35ms; }
+  :where(#presets > button):nth-child(3) { animation-delay: 70ms; }
+  :where(#presets > button):nth-child(4) { animation-delay: 105ms; }
+  :where(#presets > button):nth-child(5) { animation-delay: 140ms; }
+  :where(#presets > button):nth-child(6) { animation-delay: 175ms; }
+  :where(#presets > button):nth-child(7) { animation-delay: 210ms; }
+  :where(#presets > button):nth-child(8) { animation-delay: 245ms; }
+  :where(.pbox:not(#pVideo):not(#pLong):not(#pDoc) > *):nth-child(1) { animation-delay: 0ms; }
+  :where(.pbox:not(#pVideo):not(#pLong):not(#pDoc) > *):nth-child(2) { animation-delay: 40ms; }
+  :where(.pbox:not(#pVideo):not(#pLong):not(#pDoc) > *):nth-child(3) { animation-delay: 80ms; }
+  :where(.pbox:not(#pVideo):not(#pLong):not(#pDoc) > *):nth-child(4) { animation-delay: 120ms; }
+  :where(.pbox:not(#pVideo):not(#pLong):not(#pDoc) > *):nth-child(5) { animation-delay: 160ms; }
+  :where(.pbox:not(#pVideo):not(#pLong):not(#pDoc) > *):nth-child(6) { animation-delay: 200ms; }
+  :where(#vBar button):nth-child(1) { animation-delay: 80ms; }
+  :where(#vBar button):nth-child(2) { animation-delay: 140ms; }
+  :where(#vBar button):nth-child(3) { animation-delay: 200ms; }
+  :where(.sgrid > .scard):nth-child(1) { animation-delay: 0ms; }
+  :where(.sgrid > .scard):nth-child(2) { animation-delay: 25ms; }
+  :where(.sgrid > .scard):nth-child(3) { animation-delay: 50ms; }
+  :where(.sgrid > .scard):nth-child(4) { animation-delay: 75ms; }
+  :where(.sgrid > .scard):nth-child(5) { animation-delay: 100ms; }
+  :where(.sgrid > .scard):nth-child(6) { animation-delay: 125ms; }
+  :where(.sgrid > .scard):nth-child(7) { animation-delay: 150ms; }
+  :where(.sgrid > .scard):nth-child(8) { animation-delay: 175ms; }
+  :where(.sgrid > .scard):nth-child(9) { animation-delay: 200ms; }
+  :where(.sgrid > .scard):nth-child(10) { animation-delay: 225ms; }
+  :where(.sgrid > .scard):nth-child(11) { animation-delay: 250ms; }
+  :where(.sgrid > .scard):nth-child(12) { animation-delay: 275ms; }
+  #shutter.shot { animation: shot .55s var(--ios); }
+  #bar #btnRow > #shutter.shot { animation: shot .55s var(--ios); }
+  .chipPop { animation: chipPop .5s var(--spring) !important; }
+  #cdown.tick { animation: tick .55s var(--spring); }
+  .ui-out { animation: uiOut .24s var(--ios) forwards !important; pointer-events: none !important; }
+  #thirds.ui-out, #cropMask.ui-out { animation-name: fadeOut !important; }
+  @media (prefers-reduced-motion: reduce) { *, *::before, *::after { animation-duration: .01ms !important; animation-delay: 0s !important; transition-duration: .01ms !important; } }
 </style>
 </head>
 <body>
 
 <div id="stage">
   <canvas id="view"></canvas>
+  <canvas id="longOv"></canvas>
+  <div id="thirds"></div>
+  <div id="cropMask"><div id="cropWin"></div></div>
+  <canvas id="scanCv"></canvas>
   <div id="msg"></div>
   <div id="zoomLabel">1.0x</div>
   <div id="modeTag"></div>
   <div id="recTimer">● 00:00</div>
   <button id="lensPick">🔭 Lensa 0.5x</button>
   <button id="stabBtn" class="on">🎯 Stabil setelah rekam: ON</button>
+  <button id="torchBtn" class="tbtn" style="display:none">🔦 Senter</button>
+  <button id="timerBtn" class="tbtn">⏱ Timer: mati</button>
+  <button id="styleBtn" class="tbtn">🎨 Normal</button>
+  <button id="ratioBtn" class="tbtn">▭ Penuh</button>
+  <button id="hdBtn" class="tbtn on">✨ Zoom jernih: ON</button>
+  <button id="voiceBtn" class="tbtn">🎤 Suara: mati</button>
+  <div id="level"><i></i></div>
+  <div id="cdown"></div>
+  <div id="panoHud"><div id="panoTxt"></div><canvas id="panoMini" width="280" height="44"></canvas><div id="panoTrack"><div id="panoBar"></div></div></div>
   <div id="ver"></div>
   <div id="toast"></div>
   <div id="modes">
+    <i id="modePill"></i>
+    <button id="modeNight">MALAM</button>
+    <button id="modePortrait">POTRET</button>
     <button id="modePhoto" class="on">FOTO</button>
+    <button id="modeHdr">HDR</button>
     <button id="modeVideo">VIDEO</button>
+    <button id="modeAction">AKSI</button>
+    <button id="modeCinema">SINEMATIK</button>
+    <button id="modeSlomo">SLO-MO</button>
+    <button id="modeLapse">LAPSE</button>
+    <button id="modeLong">EKSPOS</button>
+    <button id="modePano">PANO</button>
+    <button id="modeSelfie">SELFIE</button>
+    <button id="modePro">PRO</button>
+    <button id="modeDoc">DOKUMEN</button>
+    <button id="modeScan">PINDAI</button>
+    <button id="modeScene">MODE</button>
   </div>
+  <div id="panel">
+    <div id="pNight" class="pbox">🌙 Tahan HP setenang mungkin ±3 detik setelah menekan tombol. Beberapa frame digabung supaya lebih terang dan minim noise.</div>
+    <div id="pPortrait" class="pbox">
+      <div class="row"><span>Bokeh</span><input id="bokeh" type="range" min="0" max="100" value="65"><b id="bokehVal">f/2.8</b></div>
+      <div class="row"><span>Area</span><input id="area" type="range" min="15" max="90" value="50"><b></b></div>
+      <div class="row"><span style="flex:1;min-width:0">Ketuk layar untuk memilih subjek</span><button id="faceBtn">🙂 Wajah otomatis</button></div>
+    </div>
+    <div id="pLong" class="pbox"></div>
+    <div id="pDoc" class="pbox"></div>
+    <div id="pHdr" class="pbox">
+      <div class="row"><span>HDR</span><input id="hdrStr" type="range" min="0" max="100" value="60"><b id="hdrVal">60%</b></div>
+      <div style="color:#bbb;line-height:1.4">✨ 5 frame digabung, bayangan diangkat dan highlight ditahan supaya langit dan objek gelap sama-sama detail. Tahan HP stabil sebentar.</div>
+    </div>
+    <div id="pVideo" class="pbox"></div>
+    <div id="pScene" class="pbox">
+      <div class="row"><b id="scName" style="text-align:left;min-width:0;flex:1;font-size:14px;color:#fff">Belum ada adegan</b><button id="scChange">Ganti</button></div>
+      <div id="scTip" style="color:#bbb;line-height:1.4">Ketuk Ganti untuk memilih adegan.</div>
+      <div class="row"><span>Kekuatan</span><input id="scStr" type="range" min="0" max="150" value="100"><b id="scStrVal">100%</b></div>
+    </div>
+    <div id="pSelfie" class="pbox">
+      <div class="row"><span>Haluskan</span><input id="smooth" type="range" min="0" max="100" value="40"><b id="smoothVal">40%</b></div>
+      <div class="row"><span>Cerah</span><input id="bright" type="range" min="0" max="100" value="20"><b id="brightVal">20%</b></div>
+      <div class="row"><button id="sflashBtn" class="on">💡 Flash layar</button><button id="mirrorBtn">↔ Simpan mirror</button></div>
+    </div>
+    <div id="pPano" class="pbox" style="line-height:1.5;color:#ddd">🌄 Pegang HP tegak, tekan tombol, lalu geser <b style="color:#ffd54f;min-width:0">pelan</b> ke satu arah (kiri atau kanan). Ketuk tombol lagi untuk selesai. Hindari objek dekat yang bergerak.</div>
+    <div id="pScan" class="pbox">
+      <div id="scanMsg" style="color:#ddd;line-height:1.5">📷 Arahkan ke kode QR atau barcode. Hasil muncul otomatis.</div>
+      <div id="scanRes">
+        <div id="scanTxt" style="word-break:break-all;color:#ffd54f;font-size:13px;line-height:1.4"></div>
+        <div class="row"><button id="scanCopy">Salin</button><button id="scanOpen">Buka</button><button id="scanAgain">Pindai lagi</button></div>
+      </div>
+    </div>
+    <div id="pPro" class="pbox">
+      <canvas id="hist" width="96" height="32"></canvas>
+      <div id="chips"></div>
+      <div class="row"><input id="proSlider" type="range" min="0" max="1000" value="500"><b id="proVal">A</b><button id="proAuto">AUTO</button></div>
+      <div id="proNote"></div>
+      <div class="row"><button id="gridBtn">▦ Garis bantu</button><button id="peakBtn">🔴 Peaking</button><button id="zebraBtn">🦓 Zebra</button></div>
+    </div>
+  </div>
+  <div id="focusRing"></div>
+  <button id="panelToggle">▾ Sembunyikan</button>
+  <div id="nightHud"><div id="nightTxt"></div><div id="nightTrack"><div id="nightBar"></div></div></div>
   <div id="presets">
     <button data-z="0.5">0.5</button>
     <button data-z="1" class="on">1x</button>
@@ -108,7 +408,6 @@
     <button data-z="3">3x</button>
     <button data-z="5">5x</button>
     <button data-z="10">10x</button>
-    <button id="dialBtn">11–100</button>
   </div>
   <div id="dial">
     <canvas id="dialCv"></canvas>
@@ -129,6 +428,14 @@
   </div>
 </div>
 
+<div id="scenes">
+  <div class="sheet">
+    <div class="shHead"><b>Pilih mode adegan</b><button id="scClose" aria-label="Tutup">✕</button></div>
+    <div id="scGrid"></div>
+  </div>
+</div>
+
+<div id="sflash"></div>
 <div id="flash"></div>
 
 <div id="upd">
@@ -181,12 +488,37 @@
 
   let mode = 'photo';         // photo | video
   let rec = null;             // MediaRecorder yang sedang aktif
+  let lapse = null;           // sesi time-lapse yang sedang berjalan
+  let camGen = 0;             // penanda pembukaan kamera (mencegah buka ganda)
+
+  /* ---------- Pengaturan video: resolusi, FPS (maks 60), kualitas ---------- */
+  const VMODES = ['video', 'action', 'cinema', 'slomo', 'lapse'];
+  const isVid = m => VMODES.indexOf(m) >= 0;
+  const RES = { 720: [1280, 720], 1080: [1920, 1080], 2160: [3840, 2160] };
+  const QN = ['Hemat', 'Standar', 'Tinggi', 'Maksimal'];
+  const LAPSE_IV = [0.5, 1, 2, 5, 10];
+  const vset = { res: 1080, fps: 30, cfps: 24, afps: 60, q: 2, mic: true, lap: 1 };
+  const cine = { blur: 0.7 };
+  const hdr = { str: 0.6 };
+  let vActual = null;
+  const fpsFor = m => m === 'action' ? vset.afps : m === 'slomo' ? 60 : m === 'cinema' ? vset.cfps : m === 'lapse' ? 30 : vset.fps;
+  const resFor = m => m === 'lapse' ? 1080 : m === 'slomo' ? Math.min(vset.res, 1080) : vset.res;
+  function calcBr(w, h, fps, q) {
+    const base = [5e6, 10e6, 18e6, 32e6][q];
+    const px = (w * h) / (1920 * 1080);
+    const f = Math.pow(Math.max(fps, 24) / 30, 0.7);
+    return Math.round(Math.min(100e6, base * px * f));
+  }
+  const pro = { ev: 0, con: 0, sat: 0, warm: 0, hwEv: false, hwWb: false, peak: false, zebra: false };
+  const portrait = { blur: 0.65, rad: 0.5, cx: 0, cy: 0.1, tx: 0, ty: 0.1, tr: 0.5, auto: false };
+  let nightBusy = false, pano = null, overlaysOff = false;
+  const geom = { cx: 1, cy: 1, dz: 1, flip: 1 };
 
   function toast(t) {
     const el = $('toast');
-    el.textContent = t; el.style.opacity = '1';
+    el.textContent = t; el.style.opacity = '1'; el.classList.add('show');
     clearTimeout(toast.t);
-    toast.t = setTimeout(() => el.style.opacity = '0', 5000);
+    toast.t = setTimeout(() => { el.style.opacity = '0'; el.classList.remove('show'); }, 5000);
   }
 
   /* ---------- WebGL ---------- */
@@ -199,7 +531,11 @@
     void main(){ uv = p; gl_Position = vec4(p, 0.0, 1.0); }`;
 
   const fsSrc = `
+    #ifdef GL_FRAGMENT_PRECISION_HIGH
+    precision highp float;
+    #else
     precision mediump float;
+    #endif
     varying vec2 uv;
     uniform sampler2D tex;
     uniform float k;        // kekuatan efek ultra-wide (0..1)
@@ -208,6 +544,39 @@
     uniform float flipX;
     uniform vec2 texel;
     uniform vec2 shift;
+    uniform float uExp, uCon, uSat, uWarm, uNight, uBlur;
+    uniform vec2 fPos, fRad;
+    uniform float uSharp, uStyle;
+    uniform float uHaze, uClar, uShad, uHigh, uSky, uGrn, uSun, uVib, uMono;
+    uniform float uBeauty, uPeak, uZebra;
+    uniform vec2 res;
+
+    // Interpolasi bikubik Catmull-Rom (9 tap): zoom digital halus, tidak kotak-kotak
+    vec3 bicubic(vec2 t){
+      vec2 sp = t / texel;
+      vec2 c1 = floor(sp - 0.5) + 0.5;
+      vec2 f = sp - c1;
+      vec2 w0 = f * (-0.5 + f * (1.0 - 0.5 * f));
+      vec2 w1 = 1.0 + f * f * (-2.5 + 1.5 * f);
+      vec2 w2 = f * (0.5 + f * (2.0 - 1.5 * f));
+      vec2 w3 = f * f * (-0.5 + 0.5 * f);
+      vec2 w12 = w1 + w2;
+      vec2 o12 = w2 / w12;
+      vec2 p0 = (c1 - 1.0) * texel;
+      vec2 p3 = (c1 + 2.0) * texel;
+      vec2 p12 = (c1 + o12) * texel;
+      vec3 r = vec3(0.0);
+      r += texture2D(tex, vec2(p0.x, p0.y)).rgb * w0.x * w0.y;
+      r += texture2D(tex, vec2(p12.x, p0.y)).rgb * w12.x * w0.y;
+      r += texture2D(tex, vec2(p3.x, p0.y)).rgb * w3.x * w0.y;
+      r += texture2D(tex, vec2(p0.x, p12.y)).rgb * w0.x * w12.y;
+      r += texture2D(tex, vec2(p12.x, p12.y)).rgb * w12.x * w12.y;
+      r += texture2D(tex, vec2(p3.x, p12.y)).rgb * w3.x * w12.y;
+      r += texture2D(tex, vec2(p0.x, p3.y)).rgb * w0.x * w3.y;
+      r += texture2D(tex, vec2(p12.x, p3.y)).rgb * w12.x * w3.y;
+      r += texture2D(tex, vec2(p3.x, p3.y)).rgb * w3.x * w3.y;
+      return max(r, 0.0);
+    }
 
     vec2 toTex(vec2 d){
       d *= cover;
@@ -221,12 +590,117 @@
       float r = length(uv);
       // Tengah gambar dikecilkan (terlihat menjauh), makin ke tepi makin normal.
       // Tepi tetap pas dengan frame kamera, jadi tidak ada area kosong atau blur.
-      float f = 1.0 + 0.45 * k * (1.0 - smoothstep(0.0, 1.0, r));
+      float f = 1.0 + 0.22 * k * (1.0 - smoothstep(0.0, 1.0, r));
       vec2 d = uv * f / zoomD;
       vec2 t = clamp(toTex(d) - shift, 0.0, 1.0);
-      vec3 col = texture2D(tex, t).rgb;
-      col *= 1.0 - k * 0.1 * smoothstep(0.5, 1.5, r);
-      gl_FragColor = vec4(col, 1.0);
+      vec3 col;
+      if (zoomD > 1.25) col = bicubic(t); else col = texture2D(tex, t).rgb;
+      // Penajam adaptif (unsharp mask di ruang piksel layar)
+      if (uSharp > 0.001 && res.x > 1.0) {
+        vec2 ps = cover / (res * zoomD);
+        vec3 bl = texture2D(tex, clamp(t + vec2(ps.x, 0.0), 0.0, 1.0)).rgb
+                + texture2D(tex, clamp(t - vec2(ps.x, 0.0), 0.0, 1.0)).rgb
+                + texture2D(tex, clamp(t + vec2(0.0, ps.y), 0.0, 1.0)).rgb
+                + texture2D(tex, clamp(t - vec2(0.0, ps.y), 0.0, 1.0)).rgb;
+        col += (col - bl * 0.25) * uSharp;
+      }
+      // Selfie: haluskan kulit (hanya area warna kulit, tepi tetap tajam)
+      if (uBeauty > 0.001 && res.x > 1.0) {
+        vec2 pb = cover / (res * zoomD) * 3.0;
+        vec3 bb = col;
+        bb += texture2D(tex, clamp(t + vec2(pb.x, 0.0), 0.0, 1.0)).rgb;
+        bb += texture2D(tex, clamp(t - vec2(pb.x, 0.0), 0.0, 1.0)).rgb;
+        bb += texture2D(tex, clamp(t + vec2(0.0, pb.y), 0.0, 1.0)).rgb;
+        bb += texture2D(tex, clamp(t - vec2(0.0, pb.y), 0.0, 1.0)).rgb;
+        bb += texture2D(tex, clamp(t + pb, 0.0, 1.0)).rgb;
+        bb += texture2D(tex, clamp(t - pb, 0.0, 1.0)).rgb;
+        bb += texture2D(tex, clamp(t + vec2(pb.x, -pb.y), 0.0, 1.0)).rgb;
+        bb += texture2D(tex, clamp(t + vec2(-pb.x, pb.y), 0.0, 1.0)).rgb;
+        bb /= 9.0;
+        float skin = smoothstep(0.0, 0.06, col.r - col.g) * smoothstep(0.0, 0.05, col.g - col.b) * smoothstep(0.25, 0.45, col.r);
+        float bw = uBeauty * skin * (1.0 - smoothstep(0.03, 0.14, length(col - bb)));
+        col = mix(col, bb, bw * 0.9);
+        col += vec3(0.04, 0.02, 0.02) * uBeauty * skin;
+      }
+      // Potret: blur bokeh di luar area subjek
+      if (uBlur > 0.001) {
+        float dist = length((uv - fPos) / fRad);
+        float amt = smoothstep(0.85, 1.7, dist);
+        if (amt > 0.01) {
+          float rad = 26.0 * uBlur * amt;
+          vec3 sum = vec3(0.0); float ws = 0.0;
+          for (int i = 0; i < 28; i++) {
+            float fi = float(i);
+            float rr = sqrt((fi + 0.5) / 28.0);
+            float ang = fi * 2.39996;
+            vec2 o = vec2(cos(ang), sin(ang)) * rr * rad * texel;
+            vec3 sm = texture2D(tex, clamp(t + o, 0.0, 1.0)).rgb;
+            float w = 1.0 + 3.0 * smoothstep(0.75, 1.0, dot(sm, vec3(0.299, 0.587, 0.114)));
+            sum += sm * w; ws += w;
+          }
+          col = sum / ws;
+        }
+      }
+      col *= 1.0 - k * 0.05 * smoothstep(0.5, 1.5, r);
+      // Pro / Malam: eksposur, kecerahan malam, kontras, saturasi, suhu warna (nol = mati)
+      col *= exp2(uExp);
+      if (uNight > 0.001) col = pow(max(col, 0.0), vec3(1.0 / (1.0 + 0.45 * uNight))) * (1.0 + 0.35 * uNight);
+      col = (col - 0.5) * (1.0 + uCon) + 0.5;
+      float lum = dot(col, vec3(0.299, 0.587, 0.114));
+      col = mix(vec3(lum), col, 1.0 + uSat);
+      col.r *= 1.0 + 0.12 * uWarm; col.b *= 1.0 - 0.12 * uWarm;
+      // Mode adegan: dehaze, kejernihan, bayangan/highlight, warna selektif (langit, hijau, hangat)
+      if (uHaze > 0.001) {
+        float dk = min(min(col.r, col.g), col.b);
+        col = (col - vec3(dk * uHaze)) / max(1.0 - dk * uHaze, 0.2);
+      }
+      float ls = dot(col, vec3(0.299, 0.587, 0.114));
+      col += uShad * 0.22 * (1.0 - ls) * (1.0 - ls);
+      col -= uHigh * 0.2 * smoothstep(0.55, 1.0, ls) * col;
+      if (uClar > 0.001 && res.x > 1.0) {
+        vec2 pc = cover / (res * zoomD) * 6.0;
+        vec3 bc = texture2D(tex, clamp(t + vec2(pc.x, 0.0), 0.0, 1.0)).rgb
+                + texture2D(tex, clamp(t - vec2(pc.x, 0.0), 0.0, 1.0)).rgb
+                + texture2D(tex, clamp(t + vec2(0.0, pc.y), 0.0, 1.0)).rgb
+                + texture2D(tex, clamp(t - vec2(0.0, pc.y), 0.0, 1.0)).rgb;
+        float mid = 1.0 - abs(ls * 2.0 - 1.0);
+        col += (col - bc * 0.25) * uClar * (0.35 + 0.65 * mid);
+      }
+      float sat0 = max(max(col.r, col.g), col.b) - min(min(col.r, col.g), col.b);
+      float l2 = dot(col, vec3(0.299, 0.587, 0.114));
+      col = mix(vec3(l2), col, 1.0 + uVib * (1.0 - sat0));
+      float wb = smoothstep(0.0, 0.15, col.b - max(col.r, col.g));
+      col = mix(col, mix(vec3(l2), col, 1.5) * vec3(0.95, 0.98, 1.06), clamp(wb * uSky, 0.0, 1.0));
+      float wg = smoothstep(0.0, 0.12, col.g - max(col.r, col.b));
+      col = mix(col, mix(vec3(l2), col, 1.5) * vec3(1.03, 1.02, 0.94), clamp(wg * uGrn, 0.0, 1.0));
+      float wr = smoothstep(0.02, 0.25, col.r - col.b);
+      col = mix(col, mix(vec3(l2), col, 1.6) * vec3(1.04, 0.98, 0.92), clamp(wr * uSun, 0.0, 1.0));
+      col = mix(col, vec3(dot(col, vec3(0.299, 0.587, 0.114))), uMono);
+      if (uStyle > 0.5) {
+        float lm = dot(col, vec3(0.299, 0.587, 0.114));
+        if (uStyle < 1.5) { col = mix(vec3(lm), col, 1.35); col = (col - 0.5) * 1.08 + 0.5; }
+        else if (uStyle < 2.5) { col.r *= 1.06; col.b *= 0.93; col = mix(vec3(lm), col, 1.08); }
+        else if (uStyle < 3.5) { col.r *= 0.94; col.b *= 1.07; }
+        else if (uStyle < 4.5) { col = vec3(lm); col = (col - 0.5) * 1.15 + 0.5; }
+        else {
+          col = mix(vec3(lm), col, 0.9);
+          col += mix(vec3(0.0, 0.05, 0.08), vec3(0.08, 0.03, -0.04), smoothstep(0.2, 0.8, lm));
+          col = (col - 0.5) * 1.1 + 0.5;
+        }
+      }
+      // Alat bantu Pro: focus peaking (tepi tajam merah) dan zebra (area terlalu terang)
+      if (uPeak > 0.5 && res.x > 1.0) {
+        vec2 pe = cover / (res * zoomD) * 1.5;
+        vec3 wl = vec3(0.299, 0.587, 0.114);
+        float ex = dot(texture2D(tex, clamp(t + vec2(pe.x, 0.0), 0.0, 1.0)).rgb - texture2D(tex, clamp(t - vec2(pe.x, 0.0), 0.0, 1.0)).rgb, wl);
+        float ey = dot(texture2D(tex, clamp(t + vec2(0.0, pe.y), 0.0, 1.0)).rgb - texture2D(tex, clamp(t - vec2(0.0, pe.y), 0.0, 1.0)).rgb, wl);
+        col = mix(col, vec3(1.0, 0.15, 0.15), smoothstep(0.10, 0.22, length(vec2(ex, ey))));
+      }
+      if (uZebra > 0.5 && dot(col, vec3(0.299, 0.587, 0.114)) > 0.95) {
+        float zs = step(0.5, fract((gl_FragCoord.x + gl_FragCoord.y) * 0.06));
+        col = mix(col, vec3(0.0), zs * 0.6);
+      }
+      gl_FragColor = vec4(clamp(col, 0.0, 1.0), 1.0);
     }`;
 
   function sh(type, src) {
@@ -260,13 +734,21 @@
   const uFlip = gl.getUniformLocation(prog, 'flipX');
   const uTexel = gl.getUniformLocation(prog, 'texel');
   const uShift = gl.getUniformLocation(prog, 'shift');
+  const uExp = gl.getUniformLocation(prog, 'uExp'), uCon = gl.getUniformLocation(prog, 'uCon'),
+        uSat = gl.getUniformLocation(prog, 'uSat'), uWarm = gl.getUniformLocation(prog, 'uWarm'),
+        uNight = gl.getUniformLocation(prog, 'uNight'), uBlur = gl.getUniformLocation(prog, 'uBlur'),
+        uFPos = gl.getUniformLocation(prog, 'fPos'), uFRad = gl.getUniformLocation(prog, 'fRad'),
+        uSharp = gl.getUniformLocation(prog, 'uSharp'), uStyle = gl.getUniformLocation(prog, 'uStyle'),
+        uRes = gl.getUniformLocation(prog, 'res');
+  const SCENE_U = { haze: 'uHaze', clar: 'uClar', shad: 'uShad', high: 'uHigh', sky: 'uSky', grn: 'uGrn', sun: 'uSun', vib: 'uVib', mono: 'uMono', beauty: 'uBeauty', peak: 'uPeak', zebra: 'uZebra' };
+  const sceneLocs = Object.keys(SCENE_U).map(k => [gl.getUniformLocation(prog, SCENE_U[k]), k]);
 
   function resize() {
-    if (rec) return;   // ukuran kanvas dikunci selama merekam
+    if (rec || nightBusy || pano || lapse) return;   // ukuran kanvas dikunci selama merekam / foto malam
     const dpr = Math.min(window.devicePixelRatio || 1, 2);
     let w = Math.round(stage.clientWidth * dpr);
     let h = Math.round(stage.clientHeight * dpr);
-    const maxSide = 1600, m = Math.max(w, h);
+    const maxSide = 2048, m = Math.max(w, h);
     if (m > maxSide) { w = Math.round(w * maxSide / m); h = Math.round(h * maxSide / m); }
     // ukuran genap agar aman untuk encoder video
     w &= ~1; h &= ~1;
@@ -397,6 +879,8 @@
     $('dial').style.display = on ? 'block' : 'none';
     $('presets').style.display = on ? 'none' : 'flex';
     $('modes').style.display = on ? 'none' : 'flex';
+    $('panel').style.visibility = on ? 'hidden' : 'visible';
+    $('panelToggle').style.visibility = on ? 'hidden' : 'visible';
     if (on) {
       dDpr = Math.min(window.devicePixelRatio || 1, 2);
       dW = stage.clientWidth; dH = 210;
@@ -405,9 +889,8 @@
       if (zoomT < DMIN) zoomT = DMIN;
     }
   }
-  $('dialBtn').onclick = () => openDial(true);
-  $('dialClose').onclick = () => openDial(false);
-  $('zoomLabel').onclick = () => openDial(!dialOpen);
+  $('dialClose').onclick = () => { zoomT = 10; openDial(false); };
+  $('zoomLabel').onclick = () => { zoomT = 1; };
 
   let dd = null;
   dcv.addEventListener('pointerdown', e => {
@@ -466,7 +949,7 @@
   }
 
   const presetBtns = Array.from(document.querySelectorAll('#presets button[data-z]'));
-  const zoomLabelEl = $('zoomLabel'), dialBtnEl = $('dialBtn'), recTimerEl = $('recTimer'), dialValEl = $('dialVal');
+  const zoomLabelEl = $('zoomLabel'), recTimerEl = $('recTimer'), dialValEl = $('dialVal');
   let uiZoomTxt = '', uiOn = -2, uiBig = null, uiBigTxt = '', uiRecS = -1;
 
   function updateUI() {
@@ -477,10 +960,9 @@
       if (Math.abs(parseFloat(presetBtns[i].dataset.z) - zoomT) < 0.04) on = i;
     }
     if (on !== uiOn) { uiOn = on; presetBtns.forEach((b, i) => b.classList.toggle('on', i === on)); }
-    const big = zoomT > 10.04;
-    if (big !== uiBig) { uiBig = big; dialBtnEl.classList.toggle('on', big); }
-    const bt = big ? Math.round(zoomC) + 'x' : '11–100';
-    if (bt !== uiBigTxt) { uiBigTxt = bt; dialBtnEl.textContent = bt; }
+    // Dial muncul sendiri saat zoom di atas 10x, hilang sendiri saat kembali ke 10x atau kurang
+    if (!dialOpen && zoomT > 10.05) openDial(true);
+    else if (dialOpen && zoomT <= 10.001 && !dd && !pinch) openDial(false);
     if (dialOpen) { drawDial(); dialValEl.textContent = zoomC.toFixed(1) + 'x'; }
     if (rec) {
       const sec = Math.floor((performance.now() - recStart) / 1000);
@@ -494,8 +976,8 @@
   /* ---------- Render ---------- */
   let last = performance.now();
   let lnC = 0, lnV = 0, texVT = -1, texW = 0, modeTagTxt = '';
-  function draw(now) {
-    requestAnimationFrame(draw);
+  function draw(now) { requestAnimationFrame(draw); frame(now); }
+  function frame(now) {
     const dt = Math.min((now - last) / 1000, 0.1); last = now;
 
     {
@@ -531,15 +1013,15 @@
 
     let dz, kk, tag;
     if (wideCam) {
-      dz = Math.max(zoomC / 0.5, 1); kk = 0.25 * kBase; tag = 'Lensa ultra-wide asli';
+      dz = Math.max(zoomC / 0.5, 1); kk = 0.15 * kBase; tag = 'Lensa ultra-wide asli';
     } else if (lensState === 'hw' && hwCaps) {
-      dz = zoomC / hwApplied; kk = 0.25 * kBase; tag = 'Zoom kamera asli';
+      dz = zoomC / hwApplied; kk = 0.15 * kBase; tag = 'Zoom kamera asli';
     } else {
-      dz = Math.max(zoomC, 1); kk = kBase; tag = 'Simulasi (lensa asli tidak terbuka)';
+      dz = Math.max(zoomC, 1) / teleApplied; kk = kBase * 0.8; tag = 'Simulasi (lensa asli tidak terbuka)';
     }
     const mtt = zoomC < 0.95 ? tag : '';
     if (mtt !== modeTagTxt) { modeTagTxt = mtt; $('modeTag').textContent = mtt; }
-    if (rec) recLog.push({ t: (now - recStart) / 1000, k: kk, dz: dz });
+    if (rec) recLog.push({ t: (now - recStart) / 1000, k: kk, dz: dz, bl: mode === 'cinema' ? cine.blur : 0, bx: portrait.cx, by: portrait.cy, br: portrait.rad });
 
     gl.uniform1f(uK, kk);
     gl.uniform1f(uZoom, dz);
@@ -547,13 +1029,25 @@
     gl.uniform1f(uFlip, facing === 'user' ? -1 : 1);
     gl.uniform2f(uTexel, 1 / video.videoWidth, 1 / video.videoHeight);
     gl.uniform2f(uShift, 0, 0);
+    geom.cx = cx; geom.cy = cy; geom.dz = dz; geom.flip = facing === 'user' ? -1 : 1;
+    const FX = fxParams();
+    gl.uniform1f(uExp, FX.exp); gl.uniform1f(uCon, FX.con); gl.uniform1f(uSat, FX.sat);
+    gl.uniform1f(uWarm, FX.warm); gl.uniform1f(uNight, FX.night); gl.uniform1f(uBlur, FX.blur);
+    for (let i = 0; i < sceneLocs.length; i++) gl.uniform1f(sceneLocs[i][0], FX[sceneLocs[i][1]]);
+    gl.uniform1f(uSharp, FX.sharp); gl.uniform1f(uStyle, FX.style); gl.uniform2f(uRes, canvas.width, canvas.height);
+    gl.uniform2f(uFPos, portrait.cx, portrait.cy);
+    gl.uniform2f(uFRad, portrait.rad, portrait.rad * canvas.width / canvas.height * 1.25);
     gl.drawArrays(gl.TRIANGLE_STRIP, 0, 4);
+    if (mode === 'pro') histTick(now);
+    else if (mode === 'photo') sceneTick(now);
+    if (pano) panoTick(now);
   }
 
   /* ---------- Kamera + lensa asli ---------- */
   let lensState = 'unknown';   // unknown | ultra | hw | none
   let wideDevice = null, wideCam = false, lensBusy = false;
   let deviceId = null, hwCaps = null, hwApplied = 1, hwLast = 0;
+  let teleCaps = null, teleApplied = 1, teleLast = 0;   // zoom hardware untuk zoom > 1x
   let mainId = null, pickIdx = -1;
 
   $('lensPick').onclick = async () => {
@@ -608,7 +1102,7 @@
   }
 
   function manageLens(now) {
-    if (lensBusy || facing !== 'environment' || !stream) return;
+    if (lensBusy || nightBusy || pano || facing !== 'environment' || !stream) return;
     if (lensState === 'unknown' && zoomT < 0.9) checkLens();
     else if (lensState === 'ultra') {
       if (!rec && !wideCam && zoomT < 0.9) setWide(true);
@@ -621,13 +1115,27 @@
         tr.applyConstraints({ advanced: [{ zoom: want }] }).catch(() => {});
       }
     }
+    if (teleCaps && !wideCam && lensState !== 'hw') {
+      const zc = Math.max(zoomC, 1);
+      const want = Math.min(teleCaps.max, Math.max(Math.max(teleCaps.min, 1), zc));
+      if (Math.abs(want - teleApplied) > 0.01 && now - teleLast > 80) {
+        teleLast = now; teleApplied = want;
+        const tr = stream.getVideoTracks()[0];
+        tr.applyConstraints({ advanced: [{ zoom: want }] }).catch(() => {});
+      }
+    }
   }
 
   async function startCamera() {
+    camGen++;
     if (stream) stream.getTracks().forEach(t => t.stop());
     msg.style.display = 'none';
     prevG = null; corr.x = corr.y = 0;
-    const base = { width: { ideal: 1600 }, height: { ideal: 1200 }, aspectRatio: { ideal: 4 / 3 } };
+    let base = { width: { ideal: 1920 }, height: { ideal: 1440 }, aspectRatio: { ideal: 4 / 3 } };
+    if (isVid(mode)) {
+      const rs = RES[resFor(mode)];
+      base = { width: { ideal: rs[0] }, height: { ideal: rs[1] }, aspectRatio: { ideal: 16 / 9 }, frameRate: { ideal: fpsFor(mode) } };
+    }
     const vc = deviceId
       ? Object.assign({ deviceId: { exact: deviceId } }, base)
       : Object.assign({ facingMode: { ideal: facing } }, base);
@@ -635,7 +1143,14 @@
       stream = await navigator.mediaDevices.getUserMedia({ video: vc, audio: false });
       video.srcObject = stream;
       await video.play();
+      await videoPostOpen();
       hwApplied = 1;
+      teleApplied = 1; teleCaps = null;
+      try {
+        const cz = stream.getVideoTracks()[0].getCapabilities().zoom;
+        if (cz && cz.max > 1.05 && !wideCam) teleCaps = cz;
+      } catch (e) {}
+      buildPro();
       if (!deviceId && !mainId) {
         const s = stream.getVideoTracks()[0].getSettings();
         mainId = s.deviceId || null;
@@ -647,7 +1162,7 @@
   }
 
   $('switchBtn').onclick = () => {
-    if (rec) { toast('Hentikan rekaman dulu sebelum ganti kamera.'); return; }
+    if (rec || lapse) { toast('Hentikan rekaman dulu sebelum ganti kamera.'); return; }
     facing = facing === 'environment' ? 'user' : 'environment';
     resetLens();
     startCamera();
@@ -710,7 +1225,7 @@
     g.texParameteri(g.TEXTURE_2D, g.TEXTURE_MIN_FILTER, g.LINEAR);
     g.texParameteri(g.TEXTURE_2D, g.TEXTURE_MAG_FILTER, g.LINEAR);
     const U = n => g.getUniformLocation(pr, n);
-    const u = { k: U('k'), zoom: U('zoomD'), cover: U('cover'), flip: U('flipX'), texel: U('texel'), shift: U('shift') };
+    const u = { k: U('k'), zoom: U('zoomD'), cover: U('cover'), flip: U('flipX'), texel: U('texel'), shift: U('shift'), blur: U('uBlur'), fpos: U('fPos'), frad: U('fRad') };
     g.viewport(0, 0, cv.width, cv.height);
     return (src, p) => {
       g.bindTexture(g.TEXTURE_2D, tx);
@@ -719,6 +1234,9 @@
       g.uniform2f(u.cover, p.cx, p.cy); g.uniform1f(u.flip, p.flip);
       g.uniform2f(u.texel, 1 / src.videoWidth, 1 / src.videoHeight);
       g.uniform2f(u.shift, p.sx, p.sy);
+      g.uniform1f(u.blur, p.blur || 0);
+      g.uniform2f(u.fpos, p.fx || 0, p.fy || 0);
+      g.uniform2f(u.frad, p.rad || 0.5, (p.rad || 0.5) * (p.ca || 1) * 1.25);
       g.drawArrays(g.TRIANGLE_STRIP, 0, 4);
     };
   }
@@ -737,6 +1255,7 @@
         pv.currentTime = 0;
       }
       durSec = Math.max(durSec, 0.5);
+      const SMAX = log.act ? STAB_MAX * 2.2 : STAB_MAX, SZOOM = log.act ? 1.2 : STAB_ZOOM;
       const aW = useStab ? 0.4 : 0;     // bobot progress tahap analisis
 
       // Tahap 1 (jika stabilizer aktif): analisis gerakan setiap frame, kecepatan 2x
@@ -770,7 +1289,7 @@
           const P = new Float64Array(n), Q = new Float64Array(n);
           for (let i = 1; i < n; i++) { P[i] = P[i - 1] + MX[i]; Q[i] = Q[i - 1] + MY[i]; }
           const fps = n / Math.max(0.1, T[n - 1] - T[0]);
-          const half = Math.max(2, Math.round(fps * 0.5));
+          const half = Math.max(2, Math.round(fps * (log.act ? 1.1 : 0.5)));
           const smooth = arr => {
             const pre = new Float64Array(n + 1);
             for (let i = 0; i < n; i++) pre[i + 1] = pre[i] + arr[i];
@@ -784,8 +1303,8 @@
           const SX = smooth(P), SY = smooth(Q);
           CX = new Float64Array(n); CY = new Float64Array(n);
           for (let i = 0; i < n; i++) {
-            CX[i] = Math.max(-STAB_MAX, Math.min(STAB_MAX, SX[i] - P[i]));
-            CY[i] = Math.max(-STAB_MAX, Math.min(STAB_MAX, SY[i] - Q[i]));
+            CX[i] = Math.max(-SMAX, Math.min(SMAX, SX[i] - P[i]));
+            CY[i] = Math.max(-SMAX, Math.min(SMAX, SY[i] - Q[i]));
           }
         }
       }
@@ -799,8 +1318,8 @@
       const oc = document.createElement('canvas');
       oc.width = ow & ~1; oc.height = oh & ~1;
       const render = makeRenderer(oc);
-      const cs = oc.captureStream(30);
-      try {
+      const cs = oc.captureStream(log.outFps || 30);
+      if (!log.slow) try {
         actx = new (window.AudioContext || window.webkitAudioContext)();
         const src = actx.createMediaElementSource(pv);
         const dest = actx.createMediaStreamDestination();
@@ -809,14 +1328,14 @@
         pv.muted = false;
       } catch (e) { actx = null; }
 
-      pv.playbackRate = 1;
+      pv.playbackRate = log.slow || 1;
       if (pv.currentTime > 0.01) {
         pv.currentTime = 0;
         await Promise.race([waitEvent(pv, 'seeked'), new Promise(r => setTimeout(r, 2000))]);
       }
 
       const mime = pickMime();
-      const opts = { videoBitsPerSecond: 10000000 };
+      const opts = { videoBitsPerSecond: calcBr(oc.width, oc.height, log.outFps || 30, log.q == null ? 2 : log.q) };
       if (mime) opts.mimeType = mime;
       const ro = new MediaRecorder(cs, opts);
       const chunks = [];
@@ -839,7 +1358,7 @@
             while (idx + 1 < T.length && T[idx + 1] <= mt) idx++;
             sx = CX[idx]; sy = CY[idx];
           }
-          render(pv, { k: lg.k, dz: lg.dz * (CX ? STAB_ZOOM : 1), sx, sy, cx: ccx, cy: ccy, flip: log.flip || 1 });
+          render(pv, { k: lg.k, dz: lg.dz * (CX ? SZOOM : 1), sx, sy, cx: ccx, cy: ccy, flip: log.flip || 1, blur: log.cine ? (lg.bl || 0) : 0, fx: lg.bx || 0, fy: lg.by || 0, rad: lg.br || 0.5, ca: oc.width / oc.height });
           setProgress(aW + (1 - aW) * Math.min(1, mt / durSec));
           if (!pv.ended) pv.requestVideoFrameCallback(cb);
         };
@@ -879,29 +1398,1270 @@
     refreshThumb();
   }
 
-  /* ---------- Mode foto / video ---------- */
-  function setMode(m) {
-    if (rec) return;
-    mode = m;
-    $('modePhoto').classList.toggle('on', m === 'photo');
-    $('modeVideo').classList.toggle('on', m === 'video');
-    $('shutter').classList.toggle('video', m === 'video');
-    $('shutter').setAttribute('aria-label', m === 'video' ? 'Rekam video' : 'Ambil foto');
+
+  /* ---------- Panel video, info FPS/kualitas, time-lapse ---------- */
+  async function videoPostOpen() {
+    const tr = stream && stream.getVideoTracks()[0];
+    if (!tr) return;
+    if (!isVid(mode)) { vActual = null; updateVInfo(); return; }
+    const want = fpsFor(mode);
+    let s = tr.getSettings();
+    if (s.frameRate && s.frameRate < want - 2) {
+      try {
+        await tr.applyConstraints({ width: { ideal: s.width }, height: { ideal: s.height }, frameRate: { ideal: want } });
+        s = tr.getSettings();
+      } catch (e) {}
+    }
+    vActual = { w: s.width, h: s.height, fps: Math.round(s.frameRate || want) };
+    if (vActual.fps < want - 2) toast('HP ini hanya memberi ' + vActual.fps + ' fps di resolusi ini. Turunkan resolusi untuk ' + want + ' fps.');
+    updateVInfo();
   }
-  $('modePhoto').onclick = () => setMode('photo');
-  $('modeVideo').onclick = () => setMode('video');
+
+  function updateVInfo() {
+    const el = $('vInfo');
+    if (!el || !isVid(mode)) return;
+    if (mode === 'lapse') {
+      const iv = LAPSE_IV[vset.lap];
+      const mnt = (300 * iv / 60);
+      el.textContent = '1 frame tiap ' + iv + ' dtk · video 10 dtk = rekam ±' + (mnt < 1 ? Math.round(mnt * 60) + ' dtk' : mnt.toFixed(mnt < 10 ? 1 : 0) + ' menit');
+      return;
+    }
+    const w = vActual ? vActual.w : RES[resFor(mode)][0], h = vActual ? vActual.h : RES[resFor(mode)][1];
+    const fps = vActual ? vActual.fps : fpsFor(mode);
+    const br = calcBr(w, h, fps, vset.q);
+    el.textContent = 'Aktual ' + w + '×' + h + ' · ' + fps + ' fps · ±' + Math.round(br / 1e6) + ' Mbps · ±' + Math.round(br / 8 * 60 / 1e6) + ' MB/menit';
+  }
+
+  function buildVidPanel() {
+    const P = $('pVideo');
+    const chips = (label, items, cur, key, dis) => '<div class="row"><span>' + label + '</span><div class="cg">' +
+      items.map(it => '<button data-k="' + key + '" data-v="' + it[0] + '"' + (dis ? ' disabled' : '') + ' class="' + (String(it[0]) === String(cur) ? 'on' : '') + '">' + it[1] + '</button>').join('') + '</div></div>';
+    let h = '';
+    if (mode === 'lapse') {
+      h += chips('Jeda', LAPSE_IV.map((v, i) => [i, v + ' dtk']), vset.lap, 'lap');
+      h += chips('Kualitas', QN.map((t, i) => [i, t]), vset.q, 'q');
+    } else {
+      if (mode === 'slomo') h += chips('Resolusi', [[720, '720p'], [1080, '1080p']], resFor(mode), 'res');
+      else h += chips('Resolusi', [[720, 'HD 720p'], [1080, 'FHD 1080p'], [2160, '4K']], vset.res, 'res');
+      if (mode === 'slomo') h += chips('FPS', [[60, '60 fps']], 60, 'fps', true);
+      else if (mode === 'action') h += chips('FPS', [[30, '30'], [60, '60']], vset.afps, 'afps');
+      else if (mode === 'cinema') h += chips('FPS', [[24, '24'], [30, '30'], [60, '60']], vset.cfps, 'cfps');
+      else h += chips('FPS', [[24, '24'], [30, '30'], [60, '60']], vset.fps, 'fps');
+      h += chips('Kualitas', QN.map((t, i) => [i, t]), vset.q, 'q');
+      if (mode !== 'slomo') h += '<div class="row"><span>Suara</span><div class="cg"><button data-k="mic" data-v="1" class="' + (vset.mic ? 'on' : '') + '">🎙 ' + (vset.mic ? 'ON' : 'OFF') + '</button></div></div>';
+    }
+    if (mode === 'cinema') h += '<div class="row"><span>Bokeh</span><input id="cineBlur" type="range" min="0" max="100" value="' + Math.round(cine.blur * 100) + '"><b id="cineVal">' + Math.round(cine.blur * 100) + '%</b></div>';
+    h += '<div id="vInfo"></div>';
+    const notes = {
+      video: 'Maksimal 60 fps. 4K atau 60 fps butuh HP kuat, pemrosesan setelah rekam lebih lama (matikan Stabil agar cepat).',
+      cinema: '🎬 Video dengan latar buram (bokeh) seperti mode Sinematik iPhone. Ketuk layar untuk memindah fokus. 24 fps memberi nuansa film.',
+      slomo: '🐢 Direkam 60 fps lalu diputar 0.5× supaya gerakan jadi lambat dan halus. Hasil tanpa suara.',
+      action: '🏃 Stabilisasi ekstra kuat untuk berlari, naik motor, atau jalan. Selalu aktif dan diproses setelah rekam, hasilnya sedikit lebih zoom.',
+      lapse: '⏩ Layar harus tetap menyala dan HP ditaruh diam. Maksimal 720 frame (±24 detik video).'
+    };
+    h += '<div id="vNote">' + notes[mode] + '</div>';
+    P.innerHTML = h;
+    const cb = $('cineBlur');
+    if (cb) cb.oninput = () => { cine.blur = cb.value / 100; $('cineVal').textContent = cb.value + '%'; };
+    updateVInfo();
+  }
+
+  $('pVideo').addEventListener('click', e => {
+    const b = e.target.closest('button[data-k]');
+    if (!b || b.disabled) return;
+    if (rec || lapse) { toast('Hentikan rekaman dulu sebelum mengubah pengaturan.'); return; }
+    const k = b.dataset.k, v = b.dataset.v;
+    let restart = false;
+    if (k === 'res') { vset.res = +v; restart = true; vActual = null; }
+    else if (k === 'fps') { vset.fps = +v; restart = true; vActual = null; }
+    else if (k === 'cfps') { vset.cfps = +v; restart = true; vActual = null; }
+    else if (k === 'afps') { vset.afps = +v; restart = true; vActual = null; }
+    else if (k === 'q') vset.q = +v;
+    else if (k === 'lap') vset.lap = +v;
+    else if (k === 'mic') vset.mic = !vset.mic;
+    buildVidPanel(); popChip($('pVideo'), k, v);
+    if (restart) startCamera();
+  });
+
+  $('hdrStr').oninput = () => { hdr.str = $('hdrStr').value / 100; $('hdrVal').textContent = $('hdrStr').value + '%'; };
+
+  let wakeLock = null;
+  async function lapseStart() {
+    if (lapse) return;
+    const lc = document.createElement('canvas');
+    lc.width = canvas.width & ~1; lc.height = canvas.height & ~1;
+    const lx = lc.getContext('2d');
+    const flip = facing === 'user';
+    const L = { frames: [], t0: performance.now(), max: 720, timer: 0, tick: 0 };
+    const grab = () => {
+      if (!lapse) return;
+      lx.setTransform(1, 0, 0, 1, 0, 0);
+      if (flip) { lx.translate(lc.width, 0); lx.scale(-1, 1); }
+      lx.drawImage(canvas, 0, 0, lc.width, lc.height);
+      const i = L.frames.length; L.frames.push(null);
+      lc.toBlob(b => { L.frames[i] = b; }, 'image/jpeg', 0.88);
+      if (L.frames.length >= L.max) lapseStop();
+    };
+    lapse = L;
+    $('shutter').classList.add('rec');
+    $('recTimer').style.display = 'block';
+    try { if (navigator.wakeLock) wakeLock = await navigator.wakeLock.request('screen'); } catch (e) {}
+    grab();
+    L.timer = setInterval(grab, LAPSE_IV[vset.lap] * 1000);
+    L.tick = setInterval(() => {
+      const sec = Math.floor((performance.now() - L.t0) / 1000);
+      $('recTimer').textContent = '● ' + String(Math.floor(sec / 60)).padStart(2, '0') + ':' + String(sec % 60).padStart(2, '0') + ' · ' + L.frames.length + ' frame';
+    }, 500);
+  }
+
+  async function encodeLapse(frames) {
+    const first = await createImageBitmap(frames[0]);
+    const oc = document.createElement('canvas');
+    oc.width = first.width & ~1; oc.height = first.height & ~1;
+    const cx = oc.getContext('2d');
+    cx.drawImage(first, 0, 0, oc.width, oc.height);
+    const cs = oc.captureStream(30);
+    const mime = pickMime();
+    const opts = { videoBitsPerSecond: calcBr(oc.width, oc.height, 30, vset.q) };
+    if (mime) opts.mimeType = mime;
+    const ro = new MediaRecorder(cs, opts);
+    const chunks = [];
+    ro.ondataavailable = e => { if (e.data && e.data.size) chunks.push(e.data); };
+    const stopped = new Promise(res => { ro.onstop = res; });
+    ro.start(500);
+    const step = 1000 / 30, t0 = performance.now();
+    for (let i = 0; i < frames.length; i++) {
+      if (procCancel) break;
+      if (!frames[i]) continue;
+      const bm = await createImageBitmap(frames[i]);
+      cx.drawImage(bm, 0, 0, oc.width, oc.height);
+      if (bm.close) bm.close();
+      setProgress((i + 1) / frames.length);
+      const wait = t0 + (i + 1) * step - performance.now();
+      if (wait > 0) await sleep(wait);
+    }
+    await sleep(200);
+    if (ro.state !== 'inactive') ro.stop();
+    await stopped;
+    if (first.close) first.close();
+    return new Blob(chunks, { type: (ro.mimeType || mime || 'video/webm').split(';')[0] });
+  }
+
+  async function lapseStop() {
+    if (!lapse) return;
+    const L = lapse;
+    clearInterval(L.timer); clearInterval(L.tick);
+    lapse = null; needResize = true;
+    try { if (wakeLock) wakeLock.release(); } catch (e) {}
+    wakeLock = null;
+    $('shutter').classList.remove('rec');
+    $('recTimer').style.display = 'none';
+    await sleep(120);
+    const frames = L.frames.filter(Boolean);
+    if (frames.length < 2) { toast('Terlalu sedikit frame, time-lapse dibatalkan.'); return; }
+    processing = true; procCancel = false; analyzing = false;
+    setProgress(0);
+    $('proc').style.display = 'flex';
+    let out = null;
+    try { out = await encodeLapse(frames); }
+    catch (e) { toast('Time-lapse gagal (' + e.message + ').'); }
+    $('proc').style.display = 'none';
+    processing = false;
+    if (out && out.size) { await addMedia(out, 'video'); refreshThumb(); toast('⏩ Time-lapse tersimpan di galeri.'); }
+  }
+
+
+  /* ---------- Ekspos panjang, Dokumen, Perintah suara ---------- */
+  const longS = { d: 1, t: 0 };
+  const LONG_D = [3, 5, 10, 15];
+  const docS = { f: 1 };
+  let longRun = null;
+
+  function buildMiniPanel(m) {
+    const chips = (label, items, cur, key) => '<div class="row"><span>' + label + '</span><div class="cg">' +
+      items.map((it, i) => '<button data-k="' + key + '" data-v="' + i + '" class="' + (i === cur ? 'on' : '') + '">' + it + '</button>').join('') + '</div></div>';
+    if (m === 'long') {
+      $('pLong').innerHTML =
+        chips('Jenis', ['🌠 Jejak cahaya', '💧 Air sutra'], longS.t, 'lt') +
+        chips('Durasi', LONG_D.map(v => v + ' dtk'), longS.d, 'ld') +
+        '<div style="color:#bbb;line-height:1.4">' + (longS.t === 0
+          ? 'Lampu kendaraan, bintang, atau api jadi garis cahaya. Terbaik di tempat gelap.'
+          : 'Air, awan, dan keramaian jadi halus seperti sutra. Gerakan yang acak dirata-ratakan.') +
+        ' Sandarkan HP atau pakai tripod. Ketuk tombol lagi untuk berhenti lebih awal.</div>';
+    } else {
+      $('pDoc').innerHTML =
+        chips('Filter', ['Warna', 'Dokumen', 'Hitam putih'], docS.f, 'df') +
+        '<div style="color:#bbb;line-height:1.4">📄 Bayangan dan latar kertas dibersihkan otomatis jadi putih rata, teks jadi tajam. Posisikan dokumen memenuhi layar dengan cahaya cukup.</div>';
+    }
+  }
+  [$('pLong'), $('pDoc')].forEach(P => P.addEventListener('click', e => {
+    const b = e.target.closest('button[data-k]');
+    if (!b) return;
+    const k = b.dataset.k, v = +b.dataset.v;
+    if (k === 'lt') longS.t = v; else if (k === 'ld') longS.d = v; else if (k === 'df') docS.f = v;
+    buildMiniPanel(mode); popChip($(mode === 'long' ? 'pLong' : 'pDoc'), k, v);
+  }));
+
+  async function longShot() {
+    if (nightBusy || longRun || video.readyState < 2) return;
+    nightBusy = true;
+    const trail = longS.t === 0;
+    const W = canvas.width, H = canvas.height;
+    const tc = document.createElement('canvas'); tc.width = W; tc.height = H;
+    const tx = tc.getContext('2d', { willReadFrequently: true });
+    const ov = $('longOv'); ov.width = W; ov.height = H;
+    const ox = ov.getContext('2d');
+    ov.style.display = 'block';
+    const acc = trail ? null : new Float32Array(W * H * 3);
+    const oc = document.createElement('canvas'); oc.width = W; oc.height = H;
+    const octx = oc.getContext('2d');
+    if (trail) octx.globalCompositeOperation = 'lighten';
+    const od = trail ? null : ox.createImageData(W, H);
+    const hud = $('nightHud'), txt = $('nightTxt'), bar = $('nightBar');
+    hud.style.display = 'block';
+    const dur = LONG_D[longS.d] * 1000, t0 = performance.now();
+    longRun = { stop: false };
+    let n = 0;
+    const paintAvg = () => {
+      const inv = 1 / n, o = od.data;
+      for (let i = 0, j = 0, a = 0; i < W * H; i++, j += 4, a += 3) {
+        o[j] = acc[a] * inv; o[j + 1] = acc[a + 1] * inv; o[j + 2] = acc[a + 2] * inv; o[j + 3] = 255;
+      }
+      return od;
+    };
+    try {
+      while (!longRun.stop && performance.now() - t0 < dur) {
+        tx.drawImage(canvas, 0, 0);
+        if (trail) {
+          octx.drawImage(tc, 0, 0);
+          ox.drawImage(oc, 0, 0);
+        } else {
+          const d = tx.getImageData(0, 0, W, H).data;
+          for (let j = 0, a = 0; j < d.length; j += 4, a += 3) { acc[a] += d[j]; acc[a + 1] += d[j + 1]; acc[a + 2] += d[j + 2]; }
+          n++;
+          if (n % 3 === 1) ox.putImageData(paintAvg(), 0, 0);
+        }
+        if (trail) n++;
+        const el = performance.now() - t0;
+        txt.textContent = '🌌 Ekspos panjang… ' + (el / 1000).toFixed(1) + ' / ' + (dur / 1000) + ' dtk';
+        bar.style.width = Math.min(100, el / dur * 100) + '%';
+        await sleep(40);
+      }
+      let result;
+      if (trail) result = oc;
+      else { tx.putImageData(paintAvg(), 0, 0); result = tc; }
+      const blob = await new Promise(r => finalizeCanvas(result).toBlob(r, 'image/jpeg', 0.93));
+      if (blob) {
+        await addMedia(blob, 'photo'); refreshThumb();
+        const f = $('flash'); f.style.opacity = '.8'; setTimeout(() => f.style.opacity = '0', 120);
+        toast('🌌 Foto ekspos panjang tersimpan (' + n + ' frame).');
+      }
+    } catch (e) {
+      toast('Ekspos panjang gagal: ' + e.message);
+    } finally {
+      ov.style.display = 'none'; hud.style.display = 'none';
+      longRun = null; nightBusy = false; needResize = true;
+    }
+  }
+
+  async function docShot() {
+    if (video.readyState < 2) return;
+    const fl = $('flash'); fl.style.opacity = '.8'; setTimeout(() => fl.style.opacity = '0', 120);
+    const src = finalizeCanvas(canvas);
+    const W = src.width, H = src.height;
+    const c = document.createElement('canvas'); c.width = W; c.height = H;
+    const cx = c.getContext('2d', { willReadFrequently: true });
+    cx.drawImage(src, 0, 0);
+    // perkiraan latar kertas: perkecil lalu perbesar halus
+    const sm = document.createElement('canvas'); sm.width = Math.max(8, W >> 4); sm.height = Math.max(8, H >> 4);
+    const sx = sm.getContext('2d'); sx.imageSmoothingQuality = 'high'; sx.drawImage(c, 0, 0, sm.width, sm.height);
+    const bgc = document.createElement('canvas'); bgc.width = W; bgc.height = H;
+    const bx = bgc.getContext('2d', { willReadFrequently: true });
+    bx.imageSmoothingEnabled = true; bx.imageSmoothingQuality = 'high'; bx.drawImage(sm, 0, 0, W, H);
+    const img = cx.getImageData(0, 0, W, H), d = img.data, b = bx.getImageData(0, 0, W, H).data;
+    const f = docS.f;
+    const lo = f === 1 ? 0.5 : 0.55, hi = f === 1 ? 0.95 : 0.9;
+    const ss = v => { v = (v - lo) / (hi - lo); v = v < 0 ? 0 : v > 1 ? 1 : v; return v * v * (3 - 2 * v); };
+    for (let j = 0; j < d.length; j += 4) {
+      if (f === 0) {
+        d[j] = Math.min(255, 255 * d[j] / (b[j] * 0.97 + 1));
+        d[j + 1] = Math.min(255, 255 * d[j + 1] / (b[j + 1] * 0.97 + 1));
+        d[j + 2] = Math.min(255, 255 * d[j + 2] / (b[j + 2] * 0.97 + 1));
+      } else if (f === 1) {
+        d[j] = ss(d[j] / (b[j] * 0.97 + 1)) * 255;
+        d[j + 1] = ss(d[j + 1] / (b[j + 1] * 0.97 + 1)) * 255;
+        d[j + 2] = ss(d[j + 2] / (b[j + 2] * 0.97 + 1)) * 255;
+      } else {
+        const l = 0.299 * d[j] + 0.587 * d[j + 1] + 0.114 * d[j + 2];
+        const bl = 0.299 * b[j] + 0.587 * b[j + 1] + 0.114 * b[j + 2];
+        d[j] = d[j + 1] = d[j + 2] = ss(l / (bl * 0.97 + 1)) * 255;
+      }
+    }
+    cx.putImageData(img, 0, 0);
+    c.toBlob(async blob => {
+      if (!blob) return;
+      await addMedia(blob, 'photo'); refreshThumb();
+      toast('📄 Dokumen tersimpan.');
+    }, 'image/jpeg', 0.93);
+  }
+
+  /* Perintah suara: "cheese", "ambil", "foto", "rekam", "stop" */
+  const SpeechRec = window.SpeechRecognition || window.webkitSpeechRecognition;
+  let voiceOn = false, voiceR = null, voiceLast = 0;
+  function voiceCmd(t) {
+    t = t.toLowerCase();
+    const now = performance.now();
+    if (now - voiceLast < 2500) return;
+    const stopW = /(stop|berhenti|selesai|udah|cukup)/.test(t);
+    const goW = /(cheese|cis|jepret|ambil|foto|capture|rekam|mulai)/.test(t);
+    if (rec || lapse || pano || longRun) { if (stopW) { voiceLast = now; $('shutter').click(); } }
+    else if (goW) { voiceLast = now; $('shutter').click(); }
+  }
+  function voiceStart() {
+    voiceR = new SpeechRec();
+    voiceR.lang = 'id-ID'; voiceR.continuous = true; voiceR.interimResults = false;
+    voiceR.onresult = e => {
+      for (let i = e.resultIndex; i < e.results.length; i++) if (e.results[i].isFinal) voiceCmd(e.results[i][0].transcript);
+    };
+    voiceR.onend = () => { if (voiceOn) { try { voiceR.start(); } catch (x) {} } };
+    voiceR.onerror = e => {
+      if (e.error === 'not-allowed' || e.error === 'service-not-allowed') { voiceOn = false; voiceBtnUpd(); toast('Izin mikrofon ditolak.'); }
+    };
+    try { voiceR.start(); } catch (x) {}
+  }
+  function voiceBtnUpd() {
+    $('voiceBtn').textContent = '🎤 Suara: ' + (voiceOn ? 'ON' : 'mati');
+    $('voiceBtn').classList.toggle('on', voiceOn);
+  }
+  $('voiceBtn').onclick = () => {
+    if (!SpeechRec) { toast('Browser ini belum mendukung perintah suara. Coba Chrome.'); return; }
+    voiceOn = !voiceOn;
+    if (voiceOn) { voiceStart(); toast('Ucapkan "cheese", "ambil", atau "rekam". Ucapkan "stop" untuk berhenti.'); }
+    else if (voiceR) { try { voiceR.stop(); } catch (x) {} }
+    voiceBtnUpd();
+  };
+
+
+  /* ---------- Animasi masuk/keluar layar penuh ---------- */
+  function showAnim(el, d) { clearTimeout(el._h); el.classList.remove('out'); el.style.display = d; }
+  function hideAnim(el) {
+    if (el.style.display === 'none') return;
+    el.classList.add('out'); clearTimeout(el._h);
+    el._h = setTimeout(() => { el.style.display = 'none'; el.classList.remove('out'); }, 240);
+  }
+  $('switchBtn').addEventListener('click', () => {
+    const b = $('switchBtn'); b.classList.remove('spin'); void b.offsetWidth; b.classList.add('spin');
+  });
+
+
+  /* ---------- Tombol sembunyikan / tampilkan panel pilihan ---------- */
+  let panelHid = false;
+  try { panelHid = localStorage.getItem('panelHid') === '1'; } catch (e) {}
+  function placeToggle() {
+    const p = $('panel'), t = $('panelToggle');
+    const has = p.style.display === 'flex';
+    t.style.display = has ? 'block' : 'none';
+    p.classList.toggle('hid', panelHid);
+    t.textContent = panelHid ? '▴ Tampilkan pilihan' : '▾ Sembunyikan';
+    t.style.bottom = (panelHid ? 108 : 104 + p.offsetHeight + 8) + 'px';
+  }
+  $('panelToggle').onclick = () => {
+    panelHid = !panelHid;
+    try { localStorage.setItem('panelHid', panelHid ? '1' : '0'); } catch (e) {}
+    placeToggle();
+  };
+  if (typeof ResizeObserver !== 'undefined') new ResizeObserver(placeToggle).observe($('panel'));
+
+
+  /* ---------- Gerak ala iOS: pil mode geser, geser-untuk-menutup ---------- */
+  let pillInit = false;
+  function updatePill() {
+    const b = $(MODE_BTN[mode]), p = $('modePill');
+    if (!b || !b.offsetWidth) return;
+    if (!pillInit) { p.classList.add('still'); }
+    p.style.width = b.offsetWidth + 'px'; p.style.height = b.offsetHeight + 'px';
+    p.style.top = b.offsetTop + 'px';
+    p.style.transform = 'translateX(' + b.offsetLeft + 'px)';
+    if (!pillInit) { void p.offsetWidth; p.classList.remove('still'); pillInit = true; }
+  }
+  if (typeof ResizeObserver !== 'undefined') new ResizeObserver(updatePill).observe($('modes'));
+  window.addEventListener('resize', updatePill);
+
+  function dragDismiss(el, ok, close, scaleOn) {
+    let y0 = null, dy = 0;
+    el.addEventListener('touchstart', e => {
+      if (e.touches.length !== 1 || !ok(e.target)) { y0 = null; return; }
+      y0 = e.touches[0].clientY; dy = 0;
+      el.classList.add('dragging'); el.style.transition = 'none';
+    }, { passive: true });
+    el.addEventListener('touchmove', e => {
+      if (y0 === null) return;
+      dy = Math.max(0, e.touches[0].clientY - y0);
+      const damp = dy > 0 ? dy * (1 - Math.min(0.35, dy / 1600)) : 0;
+      el.style.transform = 'translateY(' + damp + 'px)' + (scaleOn ? ' scale(' + (1 - Math.min(damp, 400) / 1800) + ')' : '');
+      if (scaleOn) el.style.opacity = String(1 - Math.min(damp, 320) / 520);
+    }, { passive: true });
+    el.addEventListener('touchend', () => {
+      if (y0 === null) return;
+      y0 = null;
+      const clean = () => { el.classList.remove('dragging'); el.style.transform = ''; el.style.opacity = ''; el.style.transition = ''; };
+      if (dy > 110) {
+        el.style.transition = 'transform .38s var(--ios), opacity .3s var(--ios)';
+        el.style.transform = 'translateY(' + (scaleOn ? '40%' : '110%') + ')'; el.style.opacity = '0';
+        close();
+        setTimeout(clean, 460);
+      } else {
+        el.style.transition = 'transform .5s var(--spring), opacity .3s var(--ios)';
+        el.style.transform = ''; el.style.opacity = '';
+        setTimeout(clean, 520);
+      }
+    });
+  }
+  dragDismiss($('viewer'), t => !t.closest('video, button, input'), () => closeViewer(), true);
+  dragDismiss(document.querySelector('#scenes .sheet'), t => !!t.closest('.shHead'), () => closeScenes(), false);
+
+
+  /* ---------- Animasi keluar universal: semua elemen yang disembunyikan memudar halus ---------- */
+  (function () {
+    const desc = Object.getOwnPropertyDescriptor(CSSStyleDeclaration.prototype, 'display');
+    if (!desc || !desc.set || !desc.get) return;
+    const map = new WeakMap();
+    document.querySelectorAll('.tbtn, #lensPick, #stabBtn, #presets, #modes, #dial, #panel, #sliderRow, #cdown, #nightHud, #panoHud, #recTimer, #scanRes, #scanMsg, #thirds, #cropMask, #panelToggle')
+      .forEach(el => map.set(el.style, el));
+    const rm = window.matchMedia ? window.matchMedia('(prefers-reduced-motion: reduce)') : { matches: false };
+    try {
+      Object.defineProperty(CSSStyleDeclaration.prototype, 'display', {
+        configurable: true, enumerable: desc.enumerable,
+        get() { const el = map.get(this); if (el && el._pd !== undefined) return el._pd; return desc.get.call(this); },
+        set(v) {
+          const el = map.get(this);
+          if (!el) { desc.set.call(this, v); return; }
+          if (v === 'none' && el._pd === 'none') return;
+          clearTimeout(el._ot);
+          if (v === 'none' && desc.get.call(this) !== 'none' && !rm.matches && getComputedStyle(el).display !== 'none') {
+            el._pd = 'none'; el.classList.add('ui-out');
+            el._ot = setTimeout(() => { el.classList.remove('ui-out'); el._pd = undefined; desc.set.call(el.style, 'none'); }, 250);
+          } else {
+            el._pd = undefined; el.classList.remove('ui-out'); desc.set.call(this, v);
+          }
+        }
+      });
+    } catch (e) {}
+  })();
+  function popChip(root, k, v) {
+    if (!root) return;
+    const b = root.querySelector('button[data-k="' + k + '"][data-v="' + v + '"]');
+    if (b) { b.classList.remove('chipPop'); void b.offsetWidth; b.classList.add('chipPop'); }
+  }
+
+  /* ---------- Mode: malam / potret / foto / video / pro ---------- */
+  const MODE_BTN = { action: 'modeAction', long: 'modeLong', doc: 'modeDoc', hdr: 'modeHdr', cinema: 'modeCinema', slomo: 'modeSlomo', lapse: 'modeLapse', night: 'modeNight', portrait: 'modePortrait', photo: 'modePhoto', video: 'modeVideo', pro: 'modePro', scene: 'modeScene', pano: 'modePano', selfie: 'modeSelfie', scan: 'modeScan' };
+  function setMode(m) {
+    if (rec || nightBusy || pano || lapse || processing) return;
+    const prev = mode;
+    const gen0 = camGen;
+    const keyPrev = isVid(prev) ? resFor(prev) + 'x' + fpsFor(prev) : '';
+    mode = m;
+    Object.keys(MODE_BTN).forEach(k => $(MODE_BTN[k]).classList.toggle('on', k === m));
+    $('shutter').classList.toggle('video', isVid(m));
+    $('shutter').setAttribute('aria-label', m === 'lapse' ? 'Mulai time-lapse' : isVid(m) ? 'Rekam video' : m === 'night' ? 'Foto malam' : 'Ambil foto');
+    const showPanel = ['night', 'portrait', 'pro', 'scene', 'selfie', 'pano', 'scan', 'hdr', 'video', 'action', 'cinema', 'slomo', 'lapse', 'long', 'doc'].indexOf(m) >= 0;
+    $('panel').style.display = showPanel ? 'flex' : 'none';
+    $('pNight').style.display = m === 'night' ? 'flex' : 'none';
+    $('pPortrait').style.display = m === 'portrait' ? 'flex' : 'none';
+    $('pPro').style.display = m === 'pro' ? 'flex' : 'none';
+    $('pScene').style.display = m === 'scene' ? 'flex' : 'none';
+    $('pSelfie').style.display = m === 'selfie' ? 'flex' : 'none';
+    $('pPano').style.display = m === 'pano' ? 'flex' : 'none';
+    $('pScan').style.display = m === 'scan' ? 'flex' : 'none';
+    $('pHdr').style.display = m === 'hdr' ? 'flex' : 'none';
+    $('pVideo').style.display = isVid(m) ? 'flex' : 'none';
+    $('pLong').style.display = m === 'long' ? 'flex' : 'none';
+    $('pDoc').style.display = m === 'doc' ? 'flex' : 'none';
+    if (m === 'long' || m === 'doc') buildMiniPanel(m);
+    try { $(MODE_BTN[m]).scrollIntoView({ inline: 'center', block: 'nearest', behavior: 'smooth' }); } catch (e) {}
+    $('stabBtn').style.display = (isVid(m) && m !== 'lapse' && m !== 'action') ? 'block' : 'none';
+    $('hdBtn').style.display = (m === 'photo' || m === 'scene') ? 'block' : 'none';
+    const photoish = ['photo', 'hdr', 'long', 'doc', 'night', 'portrait', 'pro', 'scene', 'selfie'].indexOf(m) >= 0;
+    $('styleBtn').style.display = photoish ? 'block' : 'none';
+    $('ratioBtn').style.display = photoish ? 'block' : 'none';
+    $('timerBtn').style.display = m === 'scan' ? 'none' : 'block';
+    updateCropMask();
+    if (m === 'selfie' && prev !== 'selfie') { selfieAuto = facing === 'environment'; if (facing !== 'user') setFacing('user'); }
+    else if (prev === 'selfie' && m !== 'selfie') { if (selfieAuto && facing === 'user') setFacing('environment'); selfieAuto = false; }
+    if (m === 'scan') scanStart(); else scanStop();
+    if (prev === 'pro' && m !== 'pro') resetAllPro();
+    if (m === 'portrait' && faceDet) portrait.auto = true;
+    if (m === 'cinema' && prev !== 'cinema') { portrait.tx = 0; portrait.ty = 0.05; portrait.tr = 0.5; portrait.auto = false; }
+    if (isVid(m)) buildVidPanel();
+    placeToggle();
+    requestAnimationFrame(updatePill);
+    if (prev !== m && navigator.vibrate) navigator.vibrate(6);
+    if (prev !== m) { canvas.classList.remove('swap'); void canvas.offsetWidth; canvas.classList.add('swap'); }
+    if (camGen === gen0 && stream) {
+      const keyNow = isVid(m) ? resFor(m) + 'x' + fpsFor(m) : '';
+      if (isVid(m) !== isVid(prev) || keyNow !== keyPrev) startCamera();
+    }
+    $('faceBtn').classList.toggle('on', portrait.auto);
+  }
+  Object.keys(MODE_BTN).forEach(k => { $(MODE_BTN[k]).onclick = () => setMode(k); });
 
   /* ---------- Ambil foto ---------- */
-  function takePhoto() {
+  function takePhoto(quiet) {
     if (video.readyState < 2) return;
-    const f = $('flash');
-    f.style.opacity = '.8'; setTimeout(() => f.style.opacity = '0', 120);
-    canvas.toBlob(async blob => {
+    if (!quiet) {
+      const f = $('flash');
+      f.style.opacity = '.8'; setTimeout(() => f.style.opacity = '0', 120);
+    }
+    // alat bantu Pro (peaking/zebra) tidak ikut tersimpan di foto
+    if (mode === 'pro' && (pro.peak || pro.zebra)) { overlaysOff = true; frame(performance.now()); overlaysOff = false; }
+    finalizeCanvas(canvas).toBlob(async blob => {
       if (!blob) return;
       await addMedia(blob, 'photo');
-      refreshThumb();
+      if (!quiet) refreshThumb();
     }, 'image/jpeg', 0.92);
   }
+
+
+  /* ---------- Efek per mode ---------- */
+  function fxParams() {
+    const o = { exp: 0, con: 0, sat: 0, warm: 0, night: 0, blur: 0, style: 0, sharp: 0, beauty: 0, peak: 0, zebra: 0, haze: 0, clar: 0, shad: 0, high: 0, sky: 0, grn: 0, sun: 0, vib: 0, mono: 0 };
+    if (!isVid(mode) && mode !== 'pano' && mode !== 'scan' && mode !== 'doc') o.style = styleIdx;
+    o.sharp = mode === 'night' ? 0 : Math.min(0.6, 0.18 + Math.max(0, geom.dz - 1.2) * 0.08);
+    if (mode === 'night') o.night = 1;
+    else if (mode === 'scene' && sceneIdx !== null) {
+      const P = SCENES[sceneIdx].p;
+      for (const k in P) {
+        if (k === 'sharp') o.sharp = Math.min(0.7, o.sharp + P.sharp * sceneStr);
+        else o[k] = P[k] * sceneStr;
+      }
+      o.mono = Math.min(1, o.mono);
+    }
+    else if (mode === 'selfie') {
+      o.beauty = selfie.smooth; o.exp = selfie.bright * 0.5; o.shad = selfie.bright * 0.3;
+    }
+    else if (mode === 'pro') {
+      o.peak = (pro.peak && !overlaysOff) ? 1 : 0; o.zebra = (pro.zebra && !overlaysOff) ? 1 : 0;
+      o.exp = pro.hwEv ? 0 : pro.ev; o.con = pro.con; o.sat = pro.sat;
+      o.warm = pro.hwWb ? 0 : pro.warm;
+    } else if (mode === 'hdr') {
+      o.shad = hdr.str * 0.9; o.high = hdr.str * 0.8; o.clar = hdr.str * 0.5; o.vib = hdr.str * 0.15;
+    } else if (mode === 'cinema') {
+      o.blur = cine.blur;
+      portrait.cx += (portrait.tx - portrait.cx) * 0.2;
+      portrait.cy += (portrait.ty - portrait.cy) * 0.2;
+      portrait.rad += (portrait.tr - portrait.rad) * 0.2;
+    } else if (mode === 'portrait') {
+      o.blur = portrait.blur;
+      portrait.cx += (portrait.tx - portrait.cx) * 0.2;
+      portrait.cy += (portrait.ty - portrait.cy) * 0.2;
+      portrait.rad += (portrait.tr - portrait.rad) * 0.2;
+    }
+    return o;
+  }
+
+  /* ---------- Mode MALAM: gabung banyak frame + penyelarasan gerak ---------- */
+  const sleep = ms => new Promise(r => setTimeout(r, ms));
+  async function nightShot(o) {
+    o = o || { N: 12, gap: 200, night: true };
+    if (nightBusy || video.readyState < 2) return;
+    nightBusy = true;
+    const hud = $('nightHud'), txt = $('nightTxt'), bar = $('nightBar');
+    hud.style.display = 'block';
+    try {
+      const N = o.N, gap = o.gap;
+      const W = canvas.width, H = canvas.height;
+      const tc = document.createElement('canvas'); tc.width = W; tc.height = H;
+      const tcx = tc.getContext('2d', { willReadFrequently: true });
+      const acc = new Float32Array(W * H * 3);
+      let pg = new Uint8Array(SW * SH), cg = new Uint8Array(SW * SH);
+      let ox = 0, oy = 0;
+      for (let i = 0; i < N; i++) {
+        txt.textContent = (o.night ? '🌙 Tahan HP stabil… ' : o.hdr ? '✨ HDR… ' : '✨ Zoom jernih… ') + (i + 1) + '/' + N;
+        bar.style.width = (i / N * 100) + '%';
+        if (i) await sleep(gap);
+        tcx.drawImage(canvas, 0, 0);
+        const d = tcx.getImageData(0, 0, W, H).data;
+        grabGray(cg, canvas);
+        if (i) {
+          const m = motion(pg, cg);
+          if (m.ok) { ox += m.x / SW * W; oy += m.y / SH * H; }
+        }
+        const sw = pg; pg = cg; cg = sw;
+        const ix = Math.round(ox), iy = Math.round(oy);
+        for (let y = 0; y < H; y++) {
+          const sy = Math.min(H - 1, Math.max(0, y + iy)) * W, row = y * W;
+          for (let x = 0; x < W; x++) {
+            const sx = Math.min(W - 1, Math.max(0, x + ix));
+            const si = (sy + sx) * 4, a = (row + x) * 3;
+            acc[a] += d[si]; acc[a + 1] += d[si + 1]; acc[a + 2] += d[si + 2];
+          }
+        }
+      }
+      txt.textContent = '🌙 Memproses…'; bar.style.width = '100%';
+      await sleep(30);
+      const lut = new Uint8ClampedArray(256);
+      for (let i = 0; i < 256; i++) {
+        if (!o.night) { lut[i] = i; continue; }
+        let v = Math.pow(i / 255, 0.88);               // angkat bayangan
+        v = v + 0.18 * (v * v * (3 - 2 * v) - v);      // kontras halus
+        lut[i] = v * 255 + 0.5;
+      }
+      const out = tcx.createImageData(W, H), od = out.data, inv = 1 / N;
+      for (let i = 0, j = 0, a = 0; i < W * H; i++, j += 4, a += 3) {
+        od[j] = lut[Math.round(acc[a] * inv)];
+        od[j + 1] = lut[Math.round(acc[a + 1] * inv)];
+        od[j + 2] = lut[Math.round(acc[a + 2] * inv)];
+        od[j + 3] = 255;
+      }
+      tcx.putImageData(out, 0, 0);
+      const blob = await new Promise(r => finalizeCanvas(tc).toBlob(r, 'image/jpeg', 0.92));
+      if (blob) {
+        await addMedia(blob, 'photo');
+        refreshThumb();
+        const f = $('flash'); f.style.opacity = '.8'; setTimeout(() => f.style.opacity = '0', 120);
+        toast(o.night ? '🌙 Foto malam tersimpan.' : o.hdr ? '✨ Foto HDR tersimpan.' : '✨ Foto zoom jernih tersimpan.');
+      }
+    } catch (e) {
+      toast('Foto malam gagal: ' + e.message);
+    } finally {
+      hud.style.display = 'none';
+      nightBusy = false; needResize = true;
+    }
+  }
+
+  /* ---------- Mode POTRET: bokeh dengan area subjek (ketuk / deteksi wajah bila ada) ---------- */
+  let faceDet = null, fdBusy = false;
+  try { if ('FaceDetector' in window) faceDet = new FaceDetector({ fastMode: true, maxDetectedFaces: 3 }); } catch (e) { faceDet = null; }
+  if (!faceDet) $('faceBtn').style.display = 'none';
+  const fNum = b => 16 * Math.pow(1.4 / 16, b);
+  function updBokehLabel() { $('bokehVal').textContent = 'f/' + fNum(portrait.blur).toFixed(1); }
+  $('bokeh').oninput = e => { portrait.blur = +e.target.value / 100; updBokehLabel(); };
+  $('area').oninput = e => { portrait.rad = portrait.tr = +e.target.value / 100; };
+  updBokehLabel();
+  $('faceBtn').onclick = () => {
+    portrait.auto = !portrait.auto;
+    $('faceBtn').classList.toggle('on', portrait.auto);
+  };
+  canvas.addEventListener('click', e => {
+    if (mode === 'pro') return;
+    const r = canvas.getBoundingClientRect();
+    const ux = ((e.clientX - r.left) / r.width) * 2 - 1;
+    const uy = 1 - ((e.clientY - r.top) / r.height) * 2;
+    if (mode === 'portrait' || mode === 'cinema') {
+      portrait.tx = ux; portrait.ty = uy;
+      portrait.auto = false; $('faceBtn').classList.remove('on');
+    } else tapFocusHw(ux, uy);
+    const ring = $('focusRing'), sr = stage.getBoundingClientRect();
+    ring.style.left = (e.clientX - sr.left) + 'px'; ring.style.top = (e.clientY - sr.top) + 'px';
+    ring.classList.add('show');
+    clearTimeout(ring.t); ring.t = setTimeout(() => ring.classList.remove('show'), 1200);
+  });
+  let canTapFocus = false;
+  function tapFocusHw(ux, uy) {
+    if (!canTapFocus) return;
+    const dx = ux * geom.cx / geom.dz, dy = uy * geom.cy / geom.dz;
+    const tx = Math.min(1, Math.max(0, geom.flip * dx * 0.5 + 0.5)), ty = Math.min(1, Math.max(0, 0.5 - dy * 0.5));
+    hw({ pointsOfInterest: [{ x: tx, y: ty }], focusMode: 'single-shot' });
+  }
+  async function detectFaces() {
+    if (mode !== 'portrait' || !portrait.auto || !faceDet || fdBusy || video.readyState < 2) return;
+    fdBusy = true;
+    try {
+      const fs = await faceDet.detect(video);
+      if (fs.length) {
+        let b = fs[0].boundingBox;
+        fs.forEach(f => { if (f.boundingBox.width > b.width) b = f.boundingBox; });
+        const vw = video.videoWidth, vh = video.videoHeight;
+        const dx = geom.flip * (2 * (b.x + b.width / 2) / vw - 1);
+        const dy = 1 - 2 * (b.y + b.height * 0.9) / vh;      // pusat sedikit di bawah wajah (badan)
+        const cl = (v, lo, hi) => Math.max(lo, Math.min(hi, v));
+        portrait.tx = cl(dx / geom.cx * geom.dz, -1, 1);
+        portrait.ty = cl(dy / geom.cy * geom.dz, -1, 1);
+        portrait.tr = cl((b.width / vw) * 2 / geom.cx * geom.dz * 1.5, 0.2, 0.9);
+        $('area').value = Math.round(portrait.tr * 100);
+      }
+    } catch (e) { faceDet = null; portrait.auto = false; $('faceBtn').style.display = 'none'; }
+    fdBusy = false;
+  }
+  setInterval(detectFaces, 500);
+
+  /* ---------- Mode PRO: kontrol manual (hardware bila didukung, kalau tidak lewat shader) ---------- */
+  const proParams = [];
+  let proSel = null;
+  const proSlider = $('proSlider'), chipsEl = $('chips');
+  const trk = () => stream && stream.getVideoTracks()[0];
+  const hw = obj => { const t = trk(); if (t) t.applyConstraints({ advanced: [obj] }).catch(() => {}); };
+  const hasR = (c, k) => !!(c && c[k] && typeof c[k].min === 'number' && c[k].max > c[k].min);
+  const hasL = (c, k, v) => !!(c && c[k] && c[k].includes && c[k].includes(v));
+
+  function buildPro() {
+    proParams.length = 0; proSel = null;
+    pro.ev = pro.con = pro.sat = pro.warm = 0; pro.hwEv = pro.hwWb = false;
+    const t = trk();
+    let c = {}, st = {};
+    try { c = (t && t.getCapabilities && t.getCapabilities()) || {}; st = (t && t.getSettings && t.getSettings()) || {}; } catch (e) {}
+    canTapFocus = hasL(c, 'focusMode', 'single-shot');
+    torchOn = false; $('torchBtn').classList.remove('on'); $('torchBtn').textContent = '🔦 Senter';
+    $('torchBtn').style.display = (c.torch && facing === 'environment') ? 'block' : 'none';
+    const manExp = hasL(c, 'exposureMode', 'manual');
+    const signed = v => (v > 0 ? '+' : '') + v.toFixed(1);
+
+    if (hasR(c, 'exposureCompensation')) {
+      pro.hwEv = true;
+      proParams.push({ id: 'ev', label: 'EV', min: c.exposureCompensation.min, max: c.exposureCompensation.max,
+        step: c.exposureCompensation.step || 0.1, def: 0, set: v => hw({ exposureCompensation: v }),
+        reset: () => hw({ exposureCompensation: 0 }), fmt: signed });
+    } else {
+      proParams.push({ id: 'ev', label: 'EV', min: -3, max: 3, step: 0.1, def: 0,
+        set: v => { pro.ev = v; }, reset: () => { pro.ev = 0; }, fmt: signed });
+    }
+    if (hasR(c, 'iso') && manExp) {
+      proParams.push({ id: 'iso', label: 'ISO', min: Math.max(1, c.iso.min), max: c.iso.max, step: c.iso.step || 1, log: true,
+        init: st.iso, set: v => hw({ exposureMode: 'manual', iso: v }), reset: autoExposure, fmt: v => String(Math.round(v)) });
+    }
+    if (hasR(c, 'exposureTime') && manExp) {
+      proParams.push({ id: 'sh', label: 'SHUTTER', min: Math.max(1, c.exposureTime.min), max: c.exposureTime.max, step: c.exposureTime.step || 1, log: true,
+        init: st.exposureTime, set: v => hw({ exposureMode: 'manual', exposureTime: v }), reset: autoExposure,
+        fmt: v => { const sec = v / 10000; return sec >= 0.5 ? sec.toFixed(1) + 's' : '1/' + Math.round(1 / sec); } });
+    }
+    if (hasR(c, 'focusDistance') && hasL(c, 'focusMode', 'manual')) {
+      proParams.push({ id: 'fo', label: 'FOKUS', min: c.focusDistance.min, max: c.focusDistance.max, step: c.focusDistance.step || 0.01,
+        init: st.focusDistance, set: v => hw({ focusMode: 'manual', focusDistance: v }),
+        reset: () => hw({ focusMode: 'continuous' }), fmt: v => v >= 10 ? '∞' : v.toFixed(2) + 'm' });
+    }
+    if (hasR(c, 'colorTemperature') && hasL(c, 'whiteBalanceMode', 'manual')) {
+      pro.hwWb = true;
+      proParams.push({ id: 'wb', label: 'WB', min: c.colorTemperature.min, max: c.colorTemperature.max, step: c.colorTemperature.step || 50,
+        init: st.colorTemperature, set: v => hw({ whiteBalanceMode: 'manual', colorTemperature: v }),
+        reset: () => hw({ whiteBalanceMode: 'continuous' }), fmt: v => Math.round(v) + 'K' });
+    } else {
+      proParams.push({ id: 'wb', label: 'WB', min: -1, max: 1, step: 0.05, def: 0, set: v => { pro.warm = v; },
+        reset: () => { pro.warm = 0; }, fmt: v => v === 0 ? 'netral' : (v > 0 ? 'hangat ' : 'dingin ') + Math.abs(v).toFixed(2) });
+    }
+    proParams.push({ id: 'con', label: 'KONTRAS', min: -0.5, max: 0.5, step: 0.02, def: 0,
+      set: v => { pro.con = v; }, reset: () => { pro.con = 0; }, fmt: signed });
+    proParams.push({ id: 'sat', label: 'WARNA', min: -1, max: 1, step: 0.05, def: 0,
+      set: v => { pro.sat = v; }, reset: () => { pro.sat = 0; }, fmt: v => (v > 0 ? '+' : '') + v.toFixed(2) });
+    proParams.forEach(p => { p.val = null; });
+
+    const hasManual = proParams.some(p => p.id === 'iso' || p.id === 'sh' || p.id === 'fo');
+    const note = $('proNote');
+    note.style.display = hasManual ? 'none' : 'block';
+    note.textContent = 'Browser/HP ini tidak membuka kontrol ISO, shutter, dan fokus manual untuk halaman web. EV, WB, kontras, dan warna tetap bisa diatur.';
+    proSel = proParams[0];
+    renderChips(); syncSlider();
+  }
+  function autoExposure() {
+    hw({ exposureMode: 'continuous' });
+    proParams.forEach(p => { if (p.id === 'iso' || p.id === 'sh') p.val = null; });
+  }
+  function resetAllPro() {
+    proParams.forEach(p => { if (p.val !== null) { p.val = null; p.reset(); } });
+    renderChips(); syncSlider();
+  }
+  const toPos = (p, v) => p.log ? Math.log(v / p.min) / Math.log(p.max / p.min) : (v - p.min) / (p.max - p.min);
+  const fromPos = (p, u) => {
+    let v = p.log ? p.min * Math.pow(p.max / p.min, u) : p.min + (p.max - p.min) * u;
+    if (!p.log && p.step) v = p.min + Math.round((v - p.min) / p.step) * p.step;
+    return Math.max(p.min, Math.min(p.max, v));
+  };
+  function renderChips() {
+    chipsEl.innerHTML = '';
+    proParams.forEach(p => {
+      const b = document.createElement('button');
+      b.className = 'chip' + (p === proSel ? ' on' : '') + (p.val !== null ? ' man' : '');
+      b.innerHTML = p.label + '<small>' + (p.val === null ? 'A' : p.fmt(p.val)) + '</small>';
+      b.onclick = () => { proSel = p; renderChips(); syncSlider(); };
+      chipsEl.appendChild(b);
+    });
+  }
+  function syncSlider() {
+    const p = proSel; if (!p) return;
+    const v = p.val !== null ? p.val : (typeof p.init === 'number' ? p.init : (p.def !== undefined ? p.def : (p.min + p.max) / 2));
+    proSlider.value = Math.round(Math.max(0, Math.min(1, toPos(p, Math.max(p.min, Math.min(p.max, v))))) * 1000);
+    $('proVal').textContent = p.val === null ? 'AUTO' : p.fmt(p.val);
+  }
+  proSlider.addEventListener('input', () => {
+    const p = proSel; if (!p) return;
+    p.val = fromPos(p, proSlider.value / 1000);
+    p.set(p.val);
+    $('proVal').textContent = p.fmt(p.val);
+    renderChips();
+  });
+  $('proAuto').onclick = () => {
+    const p = proSel; if (!p) return;
+    p.val = null; p.reset();
+    renderChips(); syncSlider();
+  };
+  $('gridBtn').onclick = () => {
+    const on = $('thirds').style.display !== 'block';
+    $('thirds').style.display = on ? 'block' : 'none';
+    $('gridBtn').classList.toggle('on', on);
+  };
+
+  const histCv = $('hist'), hctx = histCv.getContext('2d'), histG = new Uint8Array(SW * SH);
+  let histT = 0;
+  function histTick(now) {
+    if (now - histT < 250 || video.readyState < 2) return;
+    histT = now;
+    grabGray(histG, canvas);
+    const bins = new Uint16Array(32);
+    for (let i = 0; i < histG.length; i++) bins[histG[i] >> 3]++;
+    let mx = 1;
+    for (let i = 1; i < 31; i++) mx = Math.max(mx, bins[i]);
+    hctx.clearRect(0, 0, 96, 32);
+    hctx.fillStyle = 'rgba(255,255,255,.85)';
+    for (let i = 0; i < 32; i++) { const h = Math.min(32, bins[i] / mx * 30); hctx.fillRect(i * 3, 32 - h, 2, h); }
+  }
+
+
+  /* ---------- Fitur tambahan: gaya warna, timer, senter, zoom jernih, garis level, saran cahaya redup ---------- */
+  const STYLES = ['Normal', 'Vivid', 'Hangat', 'Sejuk', 'Hitam Putih', 'Sinema'];
+  let styleIdx = 0, timerSec = 0, hdOn = true, counting = false, torchOn = false;
+  $('styleBtn').onclick = () => {
+    styleIdx = (styleIdx + 1) % STYLES.length;
+    $('styleBtn').textContent = '🎨 ' + STYLES[styleIdx];
+    $('styleBtn').classList.toggle('on', styleIdx > 0);
+  };
+  $('timerBtn').onclick = () => {
+    timerSec = timerSec === 0 ? 3 : timerSec === 3 ? 10 : 0;
+    $('timerBtn').textContent = '⏱ Timer: ' + (timerSec ? timerSec + ' dtk' : 'mati');
+    $('timerBtn').classList.toggle('on', timerSec > 0);
+  };
+  $('hdBtn').onclick = () => {
+    hdOn = !hdOn;
+    $('hdBtn').textContent = '✨ Zoom jernih: ' + (hdOn ? 'ON' : 'OFF');
+    $('hdBtn').classList.toggle('on', hdOn);
+  };
+  $('torchBtn').onclick = () => {
+    torchOn = !torchOn;
+    hw({ torch: torchOn });
+    $('torchBtn').classList.toggle('on', torchOn);
+    $('torchBtn').textContent = torchOn ? '🔦 Senter: ON' : '🔦 Senter';
+  };
+  async function countdown(sec) {
+    counting = true;
+    const el = $('cdown'); el.style.display = 'block';
+    for (let i = sec; i > 0 && counting; i--) { el.textContent = i; el.classList.remove('tick'); void el.offsetWidth; el.classList.add('tick'); await sleep(1000); }
+    el.style.display = 'none';
+    const ok = counting; counting = false;
+    return ok;
+  }
+
+  // Garis level (horizon): muncul saat HP hampir lurus atau saat garis bantu aktif
+  const lvEl = $('level'), lvLine = lvEl.firstElementChild;
+  window.addEventListener('deviceorientation', e => {
+    if (e.beta == null || e.gamma == null) return;
+    const up = Math.abs(e.beta) > 55 && Math.abs(e.beta) < 125;
+    const roll = e.gamma;
+    const gridOn = $('thirds').style.display === 'block';
+    if (!up || Math.abs(roll) > 40 || (!gridOn && Math.abs(roll) > 8)) { lvEl.style.display = 'none'; return; }
+    lvEl.style.display = 'block';
+    lvLine.style.transform = 'rotate(' + (-roll).toFixed(1) + 'deg)';
+    lvEl.classList.toggle('ok', Math.abs(roll) < 1.2);
+  });
+  let permAsked = false;
+  document.addEventListener('touchend', () => {
+    if (permAsked) return; permAsked = true;
+    try {
+      if (window.DeviceOrientationEvent && DeviceOrientationEvent.requestPermission)
+        DeviceOrientationEvent.requestPermission().catch(() => {});
+    } catch (e) {}
+  });
+
+  // Saran otomatis: kalau adegan gelap terus, sarankan mode Malam
+  const lowG = new Uint8Array(SW * SH);
+  let lowT = 0, lowN = 0, lowHint = 0;
+  function sceneTick(now) {
+    if (now - lowT < 700 || video.readyState < 2) return;
+    lowT = now;
+    grabGray(lowG);
+    let sum = 0;
+    for (let i = 0; i < lowG.length; i += 4) sum += lowG[i];
+    const mean = sum / (lowG.length / 4);
+    lowN = mean < 40 ? lowN + 1 : 0;
+    if (lowN >= 3 && now - lowHint > 45000) {
+      lowHint = now; lowN = 0;
+      toast('🌙 Cahaya redup. Coba mode MALAM supaya lebih terang dan minim noise.');
+      const b = $('modeNight'); b.style.boxShadow = '0 0 0 2px #ffd54f';
+      setTimeout(() => { b.style.boxShadow = ''; }, 6000);
+    }
+  }
+
+
+  /* ---------- MODE ADEGAN: pemandangan, pegunungan, pantai, dll ---------- */
+  const SCENES = [
+    // ALAM
+    { c: 'Alam', e: '🏞️', n: 'Pemandangan', s: 'Alam', d: 'Warna hidup, detail jernih', t: 'Bidik horizon lurus (garis level), dan beri ruang langit sepertiga bingkai.',
+      p: { haze: .25, clar: .35, vib: .35, sky: .35, grn: .35, con: .06, sharp: .08 } },
+    { c: 'Alam', e: '⛰️', n: 'Pegunungan', s: 'Gunung', d: 'Lereng tajam, kabut tipis hilang', t: 'Zoom 2–5x membantu merapatkan lapisan punggung gunung. Pagi hari paling jernih.',
+      p: { haze: .45, clar: .5, sky: .45, grn: .2, con: .1, shad: .2, high: .3, vib: .2, sharp: .12 } },
+    { c: 'Alam', e: '🌋', n: 'Gunung Api', s: 'Api', d: 'Kawah dan asap lebih dramatis', t: 'Cocok untuk senja dan saat ada asap atau kawah. Tahan HP stabil.',
+      p: { sun: .45, haze: .3, clar: .45, con: .15, shad: .3, high: .35, warm: .05 } },
+    { c: 'Alam', e: '🏖️', n: 'Pantai', s: 'Pantai', d: 'Pasir cerah, laut biru', t: 'Pasir terang bisa mengecoh eksposur. Ketuk bagian gelap layar untuk fokus dan terang yang pas.',
+      p: { sky: .6, vib: .4, sat: .1, exp: .15, haze: .15, high: .35, shad: .1, warm: .04 } },
+    { c: 'Alam', e: '🌊', n: 'Laut & Danau', s: 'Laut', d: 'Air biru jernih, pantulan tajam', t: 'Bidik rendah dekat permukaan air untuk pantulan lebih jelas.',
+      p: { sky: .55, vib: .25, haze: .2, clar: .25, high: .3, shad: .1 } },
+    { c: 'Alam', e: '🌲', n: 'Hutan & Rimba', s: 'Hutan', d: 'Hijau pekat, bayangan terbuka', t: 'Cahaya menembus pepohonan paling bagus pagi dan sore.',
+      p: { grn: .6, shad: .4, high: .25, con: .08, haze: .15, clar: .3, warm: .04 } },
+    { c: 'Alam', e: '🌾', n: 'Sawah & Kebun', s: 'Sawah', d: 'Hijau segar, cahaya hangat', t: 'Sudut rendah atau dari pematang membuat garis sawah lebih menarik.',
+      p: { grn: .5, vib: .3, sat: .08, warm: .06, haze: .15, clar: .2, sky: .2 } },
+    { c: 'Alam', e: '💧', n: 'Air Terjun & Sungai', s: 'Air', d: 'Detail air, batu, dan lumut', t: 'Pegang HP rapat ke tubuh agar tidak goyang, percikan air bikin lensa basah.',
+      p: { clar: .35, grn: .35, shad: .3, high: .3, vib: .25, con: .05, sharp: .1 } },
+    { c: 'Alam', e: '🏜️', n: 'Gurun & Pasir', s: 'Gurun', d: 'Tekstur pasir, langit biru pekat', t: 'Cahaya sore membuat tekstur pasir paling menonjol.',
+      p: { sun: .4, warm: .15, haze: .25, con: .1, high: .35, vib: .2, sky: .3 } },
+    { c: 'Alam', e: '❄️', n: 'Salju & Es', s: 'Salju', d: 'Putih bersih, tidak gosong', t: 'Eksposur diturunkan otomatis supaya salju tidak jadi abu-abu atau terbakar.',
+      p: { exp: -.25, high: .5, shad: .15, sky: .25, warm: -.12, clar: .2, con: .08 } },
+    { c: 'Alam', e: '🌸', n: 'Bunga & Taman', s: 'Bunga', d: 'Warna cerah, kelopak tajam', t: 'Dekatkan HP ke bunga, lalu ketuk bunganya untuk fokus.',
+      p: { vib: .5, sat: .2, clar: .2, shad: .15, grn: .2, sharp: .1 } },
+    // LANGIT & CUACA
+    { c: 'Langit & Cuaca', e: '☁️', n: 'Langit & Awan', s: 'Langit', d: 'Biru pekat, awan berdetail', t: 'Hindari mengarah ke matahari langsung agar awan tidak putih polos.',
+      p: { sky: .6, high: .5, con: .15, clar: .4, haze: .2, exp: -.2 } },
+    { c: 'Langit & Cuaca', e: '🌇', n: 'Matahari Terbenam', s: 'Senja', d: 'Jingga pekat, bayangan terjaga', t: 'Mulai jepret 20 menit sebelum matahari turun, warnanya terus berubah.',
+      p: { sun: .7, warm: .35, exp: -.25, high: .45, shad: .3, con: .12, vib: .3, sat: .1 } },
+    { c: 'Langit & Cuaca', e: '🌅', n: 'Golden Hour & Fajar', s: 'Golden', d: 'Cahaya emas lembut', t: 'Satu jam setelah terbit atau sebelum terbenam, cahaya paling lembut.',
+      p: { warm: .3, sun: .5, high: .35, shad: .2, vib: .25, exp: -.1 } },
+    { c: 'Langit & Cuaca', e: '🌫️', n: 'Kabut & Mendung', s: 'Kabut', d: 'Menembus kabut tipis', t: 'Kabut tebal tetap tidak bisa ditembus, tapi kontras dan detail jauh lebih baik.',
+      p: { haze: .6, con: .15, clar: .3, vib: .2 } },
+    { c: 'Langit & Cuaca', e: '🌧️', n: 'Hujan & Basah', s: 'Hujan', d: 'Kontras basah, warna tetap hidup', t: 'Lindungi lensa dari tetesan, lap sebelum menjepret.',
+      p: { con: .12, haze: .3, vib: .3, clar: .3, shad: .25, sat: .05 } },
+    { c: 'Langit & Cuaca', e: '✨', n: 'Bintang & Langit Malam', s: 'Bintang', d: 'Gabung banyak frame, langit terang', t: 'Letakkan HP di tempat stabil atau tripod, jauhi lampu. Tahan ±3 detik setelah menekan tombol.',
+      p: { night: 1.4, con: .15, sky: .2, high: .2, clar: .2 }, stack: { N: 12, gap: 200 } },
+    // KOTA
+    { c: 'Kota & Bangunan', e: '🏙️', n: 'Kota & Arsitektur', s: 'Kota', d: 'Garis bangunan tajam, langit jelas', t: 'Bidik lurus agar garis bangunan tidak miring (pakai garis level).',
+      p: { clar: .45, haze: .2, con: .1, vib: .15, sharp: .12, sky: .2 } },
+    { c: 'Kota & Bangunan', e: '🌃', n: 'Kota Malam', s: 'Malam', d: 'Lampu terkendali, bayangan terangkat', t: 'Tahan stabil ±3 detik. Lampu kota diredam supaya tidak terbakar.',
+      p: { night: .8, con: .1, high: .5, vib: .3, shad: .15 }, stack: { N: 12, gap: 200 } },
+    { c: 'Kota & Bangunan', e: '🚶', n: 'Jalanan', s: 'Jalan', d: 'Kontras tegas ala street photo', t: 'Cari bayangan dan cahaya yang kuat, tunggu orang lewat di titik yang pas.',
+      p: { con: .15, clar: .35, vib: .15, sat: -.1, shad: .2 } },
+    { c: 'Kota & Bangunan', e: '⛩️', n: 'Candi & Bangunan Tua', s: 'Candi', d: 'Tekstur batu, warna hangat', t: 'Cahaya miring pagi atau sore membuat ukiran batu lebih terlihat.',
+      p: { warm: .08, clar: .45, haze: .25, con: .1, shad: .2, high: .2, sun: .15 } },
+    // OBJEK
+    { c: 'Objek & Lainnya', e: '🍜', n: 'Makanan', s: 'Makan', d: 'Hangat, menggugah selera', t: 'Cahaya jendela dari samping paling bagus, hindari lampu kuning langsung.',
+      p: { warm: .12, sat: .25, con: .1, vib: .3, shad: .2, clar: .2 } },
+    { c: 'Objek & Lainnya', e: '🐾', n: 'Hewan & Satwa', s: 'Hewan', d: 'Bulu dan mata lebih detail', t: 'Ketuk mata hewan untuk fokus, dan sejajarkan HP dengan tinggi matanya.',
+      p: { clar: .35, shad: .25, con: .08, vib: .2, sharp: .15 } },
+    { c: 'Objek & Lainnya', e: '🔍', n: 'Makro & Detail', s: 'Makro', d: 'Tekstur kecil jadi jelas', t: 'Dekatkan HP pelan-pelan, lalu ketuk objek untuk fokus.',
+      p: { clar: .4, sharp: .2, vib: .3, shad: .15 } },
+    { c: 'Objek & Lainnya', e: '🏃', n: 'Olahraga & Aksi', s: 'Aksi', d: 'Tajam dan kontras', t: 'Pakai di tempat terang supaya objek yang bergerak tidak buram.',
+      p: { sharp: .25, con: .1, vib: .2 } },
+    { c: 'Objek & Lainnya', e: '🎞️', n: 'HDR Dramatis', s: 'HDR', d: 'Bayangan & langit sama-sama terbuka', t: 'Bagus untuk adegan kontras tinggi seperti ruangan dengan jendela terang.',
+      p: { shad: .6, high: .6, clar: .6, vib: .4, con: .1, haze: .3 } },
+    { c: 'Objek & Lainnya', e: '📄', n: 'Dokumen', s: 'Dokumen', d: 'Hitam putih tajam, latar bersih', t: 'Letakkan kertas rata dengan cahaya merata, dan hindari bayangan tangan.',
+      p: { mono: 1, con: .5, exp: .35, clar: .5, shad: .5, sharp: .2 } }
+  ];
+  let sceneIdx = null, sceneStr = 1, prevModeBeforeScene = 'photo';
+
+  function applySceneUI() {
+    const sc = sceneIdx === null ? null : SCENES[sceneIdx];
+    $('scName').textContent = sc ? sc.e + ' ' + sc.n : 'Belum ada adegan';
+    $('scTip').textContent = sc ? sc.t : 'Ketuk Ganti untuk memilih adegan.';
+    $('modeScene').textContent = sc ? sc.e + ' ' + sc.s : 'MODE';
+  }
+  function buildScenes() {
+    const grid = $('scGrid'); grid.innerHTML = '';
+    const cats = [];
+    SCENES.forEach(sc => { if (cats.indexOf(sc.c) < 0) cats.push(sc.c); });
+    cats.forEach(cat => {
+      const h = document.createElement('div'); h.className = 'scat'; h.textContent = cat.toUpperCase();
+      grid.appendChild(h);
+      const g = document.createElement('div'); g.className = 'sgrid';
+      SCENES.forEach((sc, i) => {
+        if (sc.c !== cat) return;
+        const b = document.createElement('button');
+        b.className = 'scard' + (i === sceneIdx ? ' on' : '');
+        b.innerHTML = '<span class="e">' + sc.e + '</span>' + sc.n + '<small>' + sc.d + '</small>';
+        b.onclick = () => pickScene(i);
+        g.appendChild(b);
+      });
+      grid.appendChild(g);
+    });
+  }
+  function openScenes(on) {
+    if (on) showAnim($('scenes'), 'flex'); else hideAnim($('scenes'));
+    if (on) buildScenes();
+  }
+  function closeScenes() {
+    openScenes(false);
+    if (sceneIdx === null && mode === 'scene') setMode(prevModeBeforeScene || 'photo');
+  }
+  function pickScene(i) {
+    sceneIdx = i;
+    applySceneUI();
+    openScenes(false);
+    toast(SCENES[i].e + ' ' + SCENES[i].n + ': ' + SCENES[i].t);
+  }
+  $('modeScene').onclick = () => {
+    if (mode !== 'scene') {
+      if (rec || nightBusy) return;
+      prevModeBeforeScene = mode;
+      setMode('scene');
+    }
+    openScenes(true);
+  };
+  $('scChange').onclick = () => openScenes(true);
+  $('scClose').onclick = closeScenes;
+  $('scenes').addEventListener('click', e => { if (e.target === $('scenes')) closeScenes(); });
+  $('scStr').oninput = e => { sceneStr = +e.target.value / 100; $('scStrVal').textContent = e.target.value + '%'; };
+
+
+  /* ---------- Rasio foto, mirror selfie, hasil akhir ---------- */
+  const RATIOS = [{ n: 'Penuh', r: 0 }, { n: '3:4', r: 3 / 4 }, { n: '9:16', r: 9 / 16 }, { n: '1:1', r: 1 }, { n: '4:3', r: 4 / 3 }, { n: '16:9', r: 16 / 9 }];
+  let ratioIdx = 0, selfieAuto = false;
+  const selfie = { smooth: 0.4, bright: 0.2, flash: true, mirror: false };
+
+  function cropRect(W, H) {
+    const r = RATIOS[ratioIdx].r;
+    if (!r) return { x: 0, y: 0, w: W, h: H };
+    let w = W, h = H;
+    if (r > W / H) h = Math.round(W / r); else w = Math.round(H * r);
+    w &= ~1; h &= ~1;
+    return { x: Math.round((W - w) / 2), y: Math.round((H - h) / 2), w, h };
+  }
+  // Potong sesuai rasio, dan balik kamera depan agar hasil tidak mirror (kecuali dipilih mirror)
+  function finalizeCanvas(src) {
+    const W = src.width, H = src.height, c = cropRect(W, H);
+    const flip = facing === 'user' && !selfie.mirror;
+    if (c.w === W && c.h === H && !flip) return src;
+    const t = document.createElement('canvas'); t.width = c.w; t.height = c.h;
+    const x = t.getContext('2d');
+    if (flip) { x.translate(c.w, 0); x.scale(-1, 1); }
+    x.drawImage(src, c.x, c.y, c.w, c.h, 0, 0, c.w, c.h);
+    return t;
+  }
+  function updateCropMask() {
+    const photoish = ['photo', 'hdr', 'long', 'doc', 'night', 'portrait', 'pro', 'scene', 'selfie'].indexOf(mode) >= 0;
+    const m = $('cropMask');
+    if (!photoish || !ratioIdx) { m.style.display = 'none'; return; }
+    const c = cropRect(stage.clientWidth, stage.clientHeight), w = $('cropWin');
+    w.style.left = c.x + 'px'; w.style.top = c.y + 'px'; w.style.width = c.w + 'px'; w.style.height = c.h + 'px';
+    m.style.display = 'block';
+  }
+  $('ratioBtn').onclick = () => {
+    ratioIdx = (ratioIdx + 1) % RATIOS.length;
+    $('ratioBtn').textContent = '▭ ' + RATIOS[ratioIdx].n;
+    $('ratioBtn').classList.toggle('on', ratioIdx > 0);
+    updateCropMask();
+  };
+  window.addEventListener('resize', updateCropMask);
+
+  function setFacing(f) { facing = f; resetLens(); startCamera(); }
+
+  /* ---------- Mode SELFIE ---------- */
+  $('smooth').oninput = e => { selfie.smooth = +e.target.value / 100; $('smoothVal').textContent = e.target.value + '%'; };
+  $('bright').oninput = e => { selfie.bright = +e.target.value / 100; $('brightVal').textContent = e.target.value + '%'; };
+  $('sflashBtn').onclick = () => { selfie.flash = !selfie.flash; $('sflashBtn').classList.toggle('on', selfie.flash); };
+  $('mirrorBtn').onclick = () => { selfie.mirror = !selfie.mirror; $('mirrorBtn').classList.toggle('on', selfie.mirror); };
+  async function selfieShot() {
+    if (selfie.flash && facing === 'user') {
+      const sf = $('sflash'); sf.style.display = 'block';
+      await sleep(380);
+      takePhoto();
+      await sleep(160);
+      sf.style.display = 'none';
+    } else takePhoto();
+  }
+
+  /* ---------- Burst: tahan tombol rana ---------- */
+  let burstT = null, bursting = false, burstN = 0, burstSkipClick = false;
+  const BURST_MODES = ['photo', 'portrait', 'scene', 'selfie', 'pro'];
+  $('shutter').addEventListener('pointerdown', () => {
+    if (BURST_MODES.indexOf(mode) < 0 || processing || nightBusy || counting || timerSec || pano) return;
+    burstT = setTimeout(() => { bursting = true; burstSkipClick = true; burstLoop(); }, 500);
+  });
+  function burstEnd() {
+    clearTimeout(burstT); burstT = null;
+    if (bursting) { bursting = false; toast('📸 Burst: ' + burstN + ' foto tersimpan.'); setTimeout(refreshThumb, 300); }
+    setTimeout(() => { burstSkipClick = false; }, 60);
+  }
+  ['pointerup', 'pointercancel', 'pointerleave'].forEach(ev => $('shutter').addEventListener(ev, burstEnd));
+  async function burstLoop() {
+    burstN = 0;
+    while (bursting && burstN < 20) {
+      takePhoto(true); burstN++;
+      if (navigator.vibrate) navigator.vibrate(8);
+      await sleep(140);
+    }
+  }
+
+  /* ---------- Alat bantu Pro: peaking & zebra ---------- */
+  $('peakBtn').onclick = () => { pro.peak = !pro.peak; $('peakBtn').classList.toggle('on', pro.peak); };
+  $('zebraBtn').onclick = () => { pro.zebra = !pro.zebra; $('zebraBtn').classList.toggle('on', pro.zebra); };
+
+  /* ---------- Mode PANORAMA: jahit potongan tengah tiap frame, selaras lewat estimasi gerak ---------- */
+  const PANO_MAXW = 6400;
+  function panoStart() {
+    if (video.readyState < 2) return;
+    const W = canvas.width, H = canvas.height;
+    const sc = Math.min(1, 1100 / H), ph = Math.round(H * sc), margin = 120;
+    let wc, wx;
+    try { wc = document.createElement('canvas'); wc.width = PANO_MAXW; wc.height = ph + margin * 2; wx = wc.getContext('2d'); } catch (e) { wx = null; }
+    if (!wx) { toast('Memori tidak cukup untuk panorama di perangkat ini.'); return; }
+    pano = { W, H, sc, ph, margin, wc, wx, x0: PANO_MAXW / 2, prev: null, cur: new Uint8Array(SW * SH),
+      u: 0, v: 0, lo: 0, hi: 0, minV: 0, maxV: 0, ox0: Infinity, ox1: -Infinity, t: 0, mt: 0, fast: -9999, f0: null };
+    $('shutter').classList.add('rec');
+    $('panoHud').style.display = 'block';
+    $('panoTxt').textContent = '↔ Geser pelan ke satu arah…';
+    $('panoBar').style.width = '0%';
+    $('panoMini').getContext('2d').clearRect(0, 0, 280, 44);
+  }
+  function panoDraw(P, sx, sw, p0, v) {
+    const ox = Math.round(P.x0 + p0 * P.sc), ox2 = Math.round(P.x0 + (p0 + sw) * P.sc), ow = ox2 - ox;
+    if (ow < 1 || ox < 0 || ox2 > P.wc.width) return false;
+    const oy = P.margin + Math.round(v * P.sc);
+    P.wx.drawImage(P.src || canvas, sx, 0, sw, P.H, ox, oy, ow, P.ph);
+    P.ox0 = Math.min(P.ox0, ox); P.ox1 = Math.max(P.ox1, ox2);
+    P.minV = Math.min(P.minV, v); P.maxV = Math.max(P.maxV, v);
+    return true;
+  }
+  function panoTick(now) {
+    const P = pano; if (!P || now - P.t < 50) return; P.t = now;
+    grabGray(P.cur, canvas);
+    if (!P.prev) {
+      P.prev = new Uint8Array(SW * SH); P.prev.set(P.cur);
+      const f0 = document.createElement('canvas'); f0.width = Math.round(P.W * P.sc); f0.height = P.ph;
+      f0.getContext('2d').drawImage(canvas, 0, 0, P.W, P.H, 0, 0, f0.width, f0.height);
+      P.f0 = f0;
+      return;
+    }
+    const m = motion(P.prev, P.cur);
+    P.prev.set(P.cur);
+    if (!m.ok) return;
+    if (Math.abs(m.x) > SR - 0.6) P.fast = now;
+    P.u += -m.x / SW * P.W; P.v += -m.y / SH * P.H;
+    const halfW = P.W / 2;
+    let okDraw = true;
+    if (P.u > P.hi + 2) {
+      let g = P.u - P.hi;
+      if (g > halfW - 2) { P.fast = now; P.hi = P.u - (halfW - 2); g = halfW - 2; }
+      const w = Math.floor(g);
+      if (w >= 2) { okDraw = panoDraw(P, halfW - g, w, P.hi, P.v); P.hi += w; }
+    } else if (P.u < P.lo - 2) {
+      let g = P.lo - P.u;
+      if (g > halfW - 2) { P.fast = now; P.lo = P.u + (halfW - 2); g = halfW - 2; }
+      const w = Math.floor(g);
+      if (w >= 2) { okDraw = panoDraw(P, halfW + (g - w), w, P.lo - w, P.v); P.lo -= w; }
+    }
+    if (!okDraw) { panoStop(); return; }
+    const frames = (P.hi - P.lo) / P.W;
+    $('panoBar').style.width = Math.min(100, frames / 5 * 100) + '%';
+    $('panoTxt').textContent = now - P.fast < 700 ? '⚠ Terlalu cepat, geser lebih pelan'
+      : (P.u > 0 ? '→' : P.u < 0 ? '←' : '↔') + ' Lebar ≈ ' + (frames + 1).toFixed(1) + '× layar. Ketuk tombol untuk selesai.';
+    if (now - P.mt > 300 && P.ox1 > P.ox0) {
+      P.mt = now;
+      const mc = $('panoMini'), mx = mc.getContext('2d'), w = P.ox1 - P.ox0;
+      const k = Math.min(mc.width / w, mc.height / P.ph);
+      mx.clearRect(0, 0, mc.width, mc.height);
+      mx.drawImage(P.wc, P.ox0, P.margin, w, P.ph, 0, 0, w * k, P.ph * k);
+    }
+  }
+  async function panoStop() {
+    const P = pano; if (!P) return;
+    $('shutter').classList.remove('rec');
+    $('panoHud').style.display = 'none';
+    try {
+      if (!P.f0 || P.ox1 <= P.ox0) { toast('Panorama terlalu pendek. Geser HP lebih jauh.'); return; }
+      const halfW = P.W / 2, dir = P.hi >= -P.lo ? 1 : -1, f0w = P.f0.width;
+      // paruh frame pertama (sisi berlawanan arah geser) dan paruh frame terakhir (sisi searah)
+      P.src = P.f0;
+      const k = f0w / P.W;
+      if (dir > 0) panoDrawF0(P, 0, f0w / 2, -halfW); else panoDrawF0(P, f0w / 2, f0w / 2, 0);
+      P.src = null;
+      if (dir > 0) {
+        const sx = Math.max(0, Math.min(P.W, halfW + (P.hi - P.u)));
+        if (P.W - sx > 2) panoDraw(P, sx, P.W - sx, P.hi, P.v);
+      } else {
+        const sw = Math.max(0, Math.min(P.W, halfW + (P.lo - P.u)));
+        if (sw > 2) panoDraw(P, 0, sw, P.lo - sw, P.v);
+      }
+      const yTop = P.margin + Math.round(P.maxV * P.sc), yBot = P.margin + Math.round(P.minV * P.sc) + P.ph;
+      const hc = yBot - yTop, w = P.ox1 - P.ox0;
+      if (hc < 100 || w < 200) { toast('Panorama gagal: HP terlalu goyang naik-turun.'); return; }
+      const oc = document.createElement('canvas'); oc.width = w; oc.height = hc;
+      oc.getContext('2d').drawImage(P.wc, P.ox0, yTop, w, hc, 0, 0, w, hc);
+      const blob = await new Promise(r => oc.toBlob(r, 'image/jpeg', 0.92));
+      if (blob) { await addMedia(blob, 'photo'); refreshThumb(); toast('🌄 Panorama tersimpan (' + w + '×' + hc + ').'); }
+    } catch (e) {
+      toast('Panorama gagal: ' + e.message);
+    } finally {
+      pano = null; needResize = true;
+    }
+  }
+  // gambar paruh frame pertama (sumber sudah berskala sc): sx,sw dalam piksel skala, p0 dalam koordinat kanvas
+  function panoDrawF0(P, sx, sw, p0) {
+    const ox = Math.round(P.x0 + p0 * P.sc), ow = Math.round(sw);
+    if (ox < 0 || ox + ow > P.wc.width) return;
+    P.wx.drawImage(P.f0, sx, 0, sw, P.ph, ox, P.margin, ow, P.ph);
+    P.ox0 = Math.min(P.ox0, ox); P.ox1 = Math.max(P.ox1, ox + ow);
+  }
+
+  /* ---------- Mode PINDAI: QR & barcode (BarcodeDetector bawaan browser) ---------- */
+  let scanDet = null, scanTimer = null, scanBusy = false, scanFound = null;
+  const scanCv = $('scanCv'), scx = scanCv.getContext('2d');
+  function vidToScreen(x, y, vw, vh) {
+    const dx = geom.flip * (2 * x / vw - 1), dy = 1 - 2 * y / vh;
+    const ux = dx / geom.cx * geom.dz, uy = dy / geom.cy * geom.dz;
+    return { x: (ux + 1) / 2 * stage.clientWidth, y: (1 - uy) / 2 * stage.clientHeight };
+  }
+  function scanClear() { scanCv.width = stage.clientWidth; scanCv.height = stage.clientHeight; }
+  function scanStart() {
+    if (scanTimer) return;
+    scanFound = null; $('scanRes').style.display = 'none';
+    $('scanMsg').style.display = 'block';
+    if (!('BarcodeDetector' in window)) {
+      $('scanMsg').textContent = '⚠ Browser/HP ini belum mendukung pemindai bawaan (BarcodeDetector). Coba Chrome Android terbaru.';
+      return;
+    }
+    try { if (!scanDet) scanDet = new BarcodeDetector(); } catch (e) {
+      $('scanMsg').textContent = '⚠ Pemindai tidak bisa dibuka: ' + e.message; return;
+    }
+    $('scanMsg').textContent = '📷 Arahkan ke kode QR atau barcode. Hasil muncul otomatis.';
+    scanTimer = setInterval(scanTick, 250);
+  }
+  function scanStop() {
+    if (scanTimer) { clearInterval(scanTimer); scanTimer = null; }
+    scanFound = null; scanClear();
+  }
+  async function scanTick() {
+    if (mode !== 'scan' || scanBusy || scanFound || video.readyState < 2) return;
+    scanBusy = true;
+    try {
+      const r = await scanDet.detect(video);
+      scanClear();
+      if (r.length) {
+        scx.lineWidth = 4; scx.strokeStyle = '#ffd54f';
+        const vw = video.videoWidth, vh = video.videoHeight;
+        r.forEach(b => {
+          const pts = b.cornerPoints || [];
+          if (pts.length < 4) return;
+          scx.beginPath();
+          pts.forEach((pt, i) => { const q = vidToScreen(pt.x, pt.y, vw, vh); if (i) scx.lineTo(q.x, q.y); else scx.moveTo(q.x, q.y); });
+          scx.closePath(); scx.stroke();
+        });
+        scanFound = r[0];
+        showScanResult(r[0].rawValue || '');
+      }
+    } catch (e) {}
+    scanBusy = false;
+  }
+  function showScanResult(text) {
+    if (navigator.vibrate) navigator.vibrate(30);
+    $('scanTxt').textContent = text || '(kode terbaca tapi kosong)';
+    $('scanOpen').style.display = /^(https?:\/\/|tel:|mailto:)/i.test(text) ? 'inline-block' : 'none';
+    $('scanMsg').style.display = 'none';
+    $('scanRes').style.display = 'flex';
+  }
+  function scanAgain() {
+    scanFound = null; scanClear();
+    $('scanRes').style.display = 'none'; $('scanMsg').style.display = 'block';
+  }
+  $('scanAgain').onclick = scanAgain;
+  $('scanCopy').onclick = () => {
+    const t = $('scanTxt').textContent;
+    try { navigator.clipboard.writeText(t).then(() => toast('Disalin.')).catch(() => toast('Tidak bisa menyalin.')); } catch (e) { toast('Tidak bisa menyalin.'); }
+  };
+  $('scanOpen').onclick = () => { window.open($('scanTxt').textContent, '_blank', 'noopener'); };
 
   /* ---------- Rekam video: kamera direkam mentah (mulus), efek + stabilizer diterapkan setelah stop ---------- */
   let recStart = 0, recChunks = [], micStream = null;
@@ -918,15 +2678,19 @@
     }
     if (video.readyState < 2) return;
     const vs = new MediaStream(stream.getVideoTracks());
-    try {
-      micStream = await navigator.mediaDevices.getUserMedia({ audio: true });
-      micStream.getAudioTracks().forEach(t => vs.addTrack(t));
-    } catch (e) {
-      micStream = null;
-      toast('Mikrofon tidak diizinkan, video direkam tanpa suara.');
+    if (vset.mic && mode !== 'slomo') {
+      try {
+        micStream = await navigator.mediaDevices.getUserMedia({ audio: true });
+        micStream.getAudioTracks().forEach(t => vs.addTrack(t));
+      } catch (e) {
+        micStream = null;
+        toast('Mikrofon tidak diizinkan, video direkam tanpa suara.');
+      }
     }
+    const ts = stream.getVideoTracks()[0].getSettings();
+    const rfps = Math.round(ts.frameRate || fpsFor(mode));
     const mime = pickMime();
-    const opts = { videoBitsPerSecond: 12000000 };
+    const opts = { videoBitsPerSecond: calcBr(ts.width || 1920, ts.height || 1080, rfps, vset.q) };
     if (mime) opts.mimeType = mime;
     let r;
     try { r = new MediaRecorder(vs, opts); }
@@ -943,13 +2707,18 @@
       $('recTimer').style.display = 'none';
       if (!blob.size) return;
       const log = recLog;
-      const needs = stabOn || log.flip < 0 || log.some(l => l.k > 0.001 || Math.abs(l.dz - 1) > 0.001);
-      if (needs) await processVideo(blob, durSec, log, stabOn);
+      const needs = stabOn || log.act || log.cine || log.slow || log.flip < 0 || log.some(l => l.k > 0.001 || Math.abs(l.dz - 1) > 0.001);
+      if (needs) await processVideo(blob, durSec, log, stabOn || !!log.act);
       else { await addMedia(blob, 'video'); refreshThumb(); toast('Video tersimpan di galeri.'); }
     };
     recLog = [];
     recLog.ca = canvas.width / canvas.height;
     recLog.flip = facing === 'user' ? -1 : 1;
+    recLog.q = vset.q;
+    recLog.act = mode === 'action' ? 1 : 0;
+    recLog.slow = mode === 'slomo' ? 0.5 : 0;
+    recLog.cine = (mode === 'cinema' && cine.blur > 0.02) ? 1 : 0;
+    recLog.outFps = mode === 'slomo' ? 30 : Math.min(60, fpsFor(mode));
     rec = r;
     recStart = performance.now();
     r.start(500);
@@ -961,11 +2730,34 @@
     if (rec && rec.state !== 'inactive') rec.stop();
   }
 
-  $('shutter').onclick = () => {
-    if (processing) return;
-    if (mode === 'photo') takePhoto();
-    else if (rec) stopRec();
-    else startRec();
+  function doShoot() {
+    if (navigator.vibrate) navigator.vibrate(12);
+    { const sb = $('shutter'); sb.classList.remove('shot'); void sb.offsetWidth; sb.classList.add('shot'); }
+    if (mode === 'night') nightShot({ N: 12, gap: 200, night: true });
+    else if (mode === 'long') longShot();
+    else if (mode === 'doc') docShot();
+    else if (mode === 'lapse') lapseStart();
+    else if (isVid(mode)) startRec();
+    else if (mode === 'hdr') nightShot({ N: 5, gap: 90, night: false, hdr: true });
+    else if (mode === 'pano') panoStart();
+    else if (mode === 'selfie') selfieShot();
+    else if (mode === 'scene' && sceneIdx !== null && SCENES[sceneIdx].stack)
+      nightShot({ N: SCENES[sceneIdx].stack.N, gap: SCENES[sceneIdx].stack.gap, night: true });
+    else if ((mode === 'photo' || mode === 'scene') && hdOn && zoomC >= 4) nightShot({ N: 6, gap: 110, night: false });
+    else takePhoto();
+  }
+  $('shutter').onclick = async () => {
+    if (burstSkipClick) { burstSkipClick = false; return; }
+    if (counting) { counting = false; return; }
+    if (pano) { panoStop(); return; }
+    if (lapse) { lapseStop(); return; }
+    if (longRun) { longRun.stop = true; return; }
+    if (processing || nightBusy) return;
+    if (rec) { stopRec(); return; }
+    if (mode === 'scan') { scanAgain(); return; }
+    if (mode === 'scene' && sceneIdx === null) { openScenes(true); return; }
+    if (timerSec && !(await countdown(timerSec))) return;
+    doShoot();
   };
 
   /* ---------- Galeri ---------- */
@@ -973,6 +2765,7 @@
   async function refreshThumb() {
     const list = await allMedia();
     const btn = $('galleryBtn');
+    btn.classList.remove('pop'); void btn.offsetWidth; btn.classList.add('pop');
     if (!list.length) { btn.textContent = '🖼️'; return; }
     if (list[0].kind === 'video') { btn.textContent = '🎞️'; return; }
     const u = URL.createObjectURL(list[0].blob);
@@ -1002,10 +2795,10 @@
       cell.onclick = () => openViewer(p, u);
       grid.appendChild(cell);
     });
-    $('gallery').style.display = 'flex';
+    showAnim($('gallery'), 'flex');
   }
   $('galleryBtn').onclick = openGallery;
-  $('gClose').onclick = () => { $('gallery').style.display = 'none'; refreshThumb(); };
+  $('gClose').onclick = () => { hideAnim($('gallery')); refreshThumb(); };
 
   /* ---------- Penampil ---------- */
   let current = null;
@@ -1016,11 +2809,11 @@
     $('vVid').style.display = isVid ? 'block' : 'none';
     if (isVid) { $('vVid').src = u; }
     else { $('vImg').src = u; }
-    $('viewer').style.display = 'flex';
+    showAnim($('viewer'), 'flex');
   }
   function closeViewer() {
     const v = $('vVid'); v.pause(); v.removeAttribute('src'); v.load();
-    $('viewer').style.display = 'none';
+    hideAnim($('viewer'));
   }
   $('vBack').onclick = closeViewer;
 
@@ -1047,7 +2840,7 @@
   };
 
   /* ---------- Auto-update: cek versi terbaru, lalu muat ulang paksa otomatis ---------- */
-  const APP_VERSION = 'v18';
+  const APP_VERSION = 'v28';
   $('ver').textContent = APP_VERSION;
   const vnum = v => parseInt(String(v).replace(/\D/g, ''), 10) || 0;
   let updating = false;
@@ -1110,6 +2903,7 @@
   window.addEventListener('online', checkUpdate);
 
   /* ---------- Mulai ---------- */
+  setMode(mode);
   openDB().then(refreshThumb);
   startCamera();
   requestAnimationFrame(draw);
