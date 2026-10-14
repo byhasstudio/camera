@@ -312,6 +312,51 @@
   .ui-out { animation: uiOut .24s var(--ios) forwards !important; pointer-events: none !important; }
   #thirds.ui-out, #cropMask.ui-out { animation-name: fadeOut !important; }
   @media (prefers-reduced-motion: reduce) { *, *::before, *::after { animation-duration: .01ms !important; animation-delay: 0s !important; transition-duration: .01ms !important; } }
+
+  /* ===== Pengaturan, editor foto, tab galeri ===== */
+  #setBtn { position: absolute; right: 46px; top: 8px; width: 34px; height: 34px; border-radius: 17px; border: 0; background: rgba(0,0,0,.55); color: #fff; font-size: 17px; padding: 0; -webkit-backdrop-filter: blur(14px); backdrop-filter: blur(14px); }
+  #settings { position: fixed; inset: 0; z-index: 8; display: none; align-items: flex-end; background: rgba(0,0,0,.5); animation: fadeIn .26s var(--ios); }
+  #settings .sheet { width: 100%; max-height: 76%; overflow-y: auto; background: #151515; border-radius: 20px 20px 0 0; padding: 14px 16px 26px; animation: sheetUp2 .55s var(--ios); will-change: transform; }
+  #settings.out { animation: fadeOut .24s var(--ios) forwards; }
+  #settings.out .sheet { animation: sheetDown .36s var(--ios) forwards; }
+  #settings .shHead { display: flex; align-items: center; justify-content: space-between; margin: 0 0 6px; font-size: 17px; }
+  #setClose { width: 34px; height: 34px; border-radius: 17px; border: 0; background: #2a2a2a; color: #fff; font-size: 15px; }
+  .srow { display: flex; align-items: center; justify-content: space-between; gap: 12px; padding: 12px 2px; border-bottom: 1px solid #262626; font-size: 14px; }
+  .srow:last-child { border-bottom: 0; }
+  .srow small { display: block; color: #888; font-size: 11px; margin-top: 2px; }
+  .sw { position: relative; width: 51px; height: 31px; border-radius: 16px; border: 0; background: #3a3a3c; flex: none; padding: 0; transition: background-color .3s var(--ios); }
+  .sw::after { content: ''; position: absolute; top: 2px; left: 2px; width: 27px; height: 27px; border-radius: 50%; background: #fff; box-shadow: 0 2px 5px rgba(0,0,0,.35); transition: transform .45s var(--spring); }
+  .sw.on { background: #34c759; }
+  .sw.on::after { transform: translateX(20px); }
+  .sw:active, .sw:active::after { opacity: 1; }
+  .sq { display: flex; gap: 4px; }
+  .sq button { border: 0; border-radius: 10px; padding: 7px 10px; background: #2a2a2c; color: #ccc; font-size: 12px; font-weight: 600; }
+  .sq button.on { background: #ffd54f; color: #000; }
+  .noglass #panel, .noglass #modes, .noglass .tbtn, .noglass #panelToggle, .noglass #toast, .noglass #setBtn { -webkit-backdrop-filter: none; backdrop-filter: none; }
+  .lite *, .lite *::before, .lite *::after { animation-duration: .01ms !important; animation-delay: 0s !important; transition-duration: .01ms !important; }
+  #gTabs { display: flex; gap: 6px; padding: 8px 12px; background: #111; }
+  #gTabs button { flex: 1; border: 0; border-radius: 10px; padding: 8px 0; background: #262626; color: #ccc; font-size: 13px; font-weight: 600; }
+  #gTabs button.on { background: #fff; color: #000; }
+  #vMeta { padding: 7px 14px; background: #111; color: #9a9a9a; font-size: 12px; text-align: center; }
+  #vBar .edit { background: #7e57c2; }
+  #editor { position: fixed; inset: 0; background: #000; display: none; flex-direction: column; z-index: 25; animation: zoomIn .45s var(--ios); }
+  #editor.out { animation: zoomOut .3s var(--ios) forwards; }
+  #edTop { display: flex; justify-content: space-between; align-items: center; padding: 12px 14px; background: #111; font-size: 15px; }
+  #edTop button { border: 0; background: none; color: #fff; font-size: 15px; padding: 6px 4px; }
+  #edTop #edSave { color: #ffd54f; font-weight: 700; }
+  #edStage { flex: 1; min-height: 0; padding: 8px; }
+  #edCv { width: 100%; height: 100%; object-fit: contain; display: block; }
+  #edPanel { background: #111; padding: 10px 14px 18px; display: flex; flex-direction: column; gap: 8px; font-size: 12px; }
+  #edPanel .row { display: flex; align-items: center; gap: 8px; }
+  #edPanel .row span { min-width: 52px; color: #ccc; }
+  #edPanel .row b { min-width: 36px; text-align: right; color: #ffd54f; font-weight: 600; }
+  #edPanel input[type=range] { flex: 1; min-width: 0; }
+  #edPanel button { border: 0; border-radius: 12px; background: #2a2a2c; color: #fff; font-size: 12px; font-weight: 600; padding: 8px 12px; }
+  #edPanel button.on { background: rgba(255,213,79,.95); color: #000; }
+  #edFilters { display: flex; gap: 6px; overflow-x: auto; scrollbar-width: none; padding-bottom: 2px; }
+  #edFilters button { flex: none; }
+  #edTools { display: flex; gap: 6px; }
+  #edTools button { flex: 1; }
 </style>
 </head>
 <body>
@@ -334,6 +379,7 @@
   <button id="ratioBtn" class="tbtn">▭ Penuh</button>
   <button id="hdBtn" class="tbtn on">✨ Zoom jernih: ON</button>
   <button id="voiceBtn" class="tbtn">🎤 Suara: mati</button>
+  <button id="setBtn" aria-label="Pengaturan">⚙️</button>
   <div id="level"><i></i></div>
   <div id="cdown"></div>
   <div id="panoHud"><div id="panoTxt"></div><canvas id="panoMini" width="280" height="44"></canvas><div id="panoTrack"><div id="panoBar"></div></div></div>
@@ -428,6 +474,13 @@
   </div>
 </div>
 
+<div id="settings">
+  <div class="sheet">
+    <div class="shHead"><b>Pengaturan</b><button id="setClose" aria-label="Tutup">✕</button></div>
+    <div id="setBody"></div>
+  </div>
+</div>
+
 <div id="scenes">
   <div class="sheet">
     <div class="shHead"><b>Pilih mode adegan</b><button id="scClose" aria-label="Tutup">✕</button></div>
@@ -460,6 +513,7 @@
     <button id="gClose">← Kembali</button>
     <span id="gCount"></span>
   </div>
+  <div id="gTabs"><button data-f="all" class="on">Semua</button><button data-f="photo">Foto</button><button data-f="video">Video</button></div>
   <div id="grid"></div>
   <div id="empty">Belum ada foto atau video.</div>
 </div>
@@ -467,10 +521,25 @@
 <div id="viewer">
   <img id="vImg" alt="Foto">
   <video id="vVid" controls playsinline style="display:none"></video>
+  <div id="vMeta"></div>
   <div id="vBar">
     <button id="vBack">Tutup</button>
+    <button id="vEdit" class="edit">Edit</button>
     <button class="save" id="vSave">Simpan ke HP</button>
     <button class="del" id="vDel">Hapus</button>
+  </div>
+</div>
+
+<div id="editor">
+  <div id="edTop"><button id="edCancel">Batal</button><b>Edit foto</b><button id="edSave">Simpan</button></div>
+  <div id="edStage"><canvas id="edCv"></canvas></div>
+  <div id="edPanel">
+    <div id="edFilters"></div>
+    <div class="row"><span>Cerah</span><input id="edB" type="range" min="-100" max="100" value="0"><b id="edBv">0</b></div>
+    <div class="row"><span>Kontras</span><input id="edC" type="range" min="-100" max="100" value="0"><b id="edCv2">0</b></div>
+    <div class="row"><span>Warna</span><input id="edS" type="range" min="-100" max="100" value="0"><b id="edSv">0</b></div>
+    <div class="row"><span>Hangat</span><input id="edW" type="range" min="-100" max="100" value="0"><b id="edWv">0</b></div>
+    <div id="edTools"><button id="edRot">⟲ Putar</button><button id="edFlip">↔ Balik</button><button id="edReset">Reset</button></div>
   </div>
 </div>
 
@@ -1650,7 +1719,7 @@
       let result;
       if (trail) result = oc;
       else { tx.putImageData(paintAvg(), 0, 0); result = tc; }
-      const blob = await new Promise(r => finalizeCanvas(result).toBlob(r, 'image/jpeg', 0.93));
+      const blob = await new Promise(r => finalizeCanvas(result).toBlob(r, 'image/jpeg', jq()));
       if (blob) {
         await addMedia(blob, 'photo'); refreshThumb();
         const f = $('flash'); f.style.opacity = '.8'; setTimeout(() => f.style.opacity = '0', 120);
@@ -1667,7 +1736,7 @@
   async function docShot() {
     if (video.readyState < 2) return;
     const fl = $('flash'); fl.style.opacity = '.8'; setTimeout(() => fl.style.opacity = '0', 120);
-    const src = finalizeCanvas(canvas);
+    const src = finalizeCanvas(canvas, true);
     const W = src.width, H = src.height;
     const c = document.createElement('canvas'); c.width = W; c.height = H;
     const cx = c.getContext('2d', { willReadFrequently: true });
@@ -1702,7 +1771,7 @@
       if (!blob) return;
       await addMedia(blob, 'photo'); refreshThumb();
       toast('📄 Dokumen tersimpan.');
-    }, 'image/jpeg', 0.93);
+    }, 'image/jpeg', jq());
   }
 
   /* Perintah suara: "cheese", "ambil", "foto", "rekam", "stop" */
@@ -1854,6 +1923,160 @@
     if (b) { b.classList.remove('chipPop'); void b.offsetWidth; b.classList.add('chipPop'); }
   }
 
+
+  /* ---------- Pengaturan, stempel, suara rana, tab galeri, editor foto ---------- */
+  const cs = { q: 1, stamp: false, sound: true, haptic: true, glass: true, lite: false };
+  try { Object.assign(cs, JSON.parse(localStorage.getItem('camSet') || '{}')); } catch (e) {}
+  const JQ = [0.8, 0.92, 0.98];
+  const jq = () => JQ[cs.q] || 0.92;
+  const saveCs = () => { try { localStorage.setItem('camSet', JSON.stringify(cs)); } catch (e) {} };
+  const applyCs = () => { document.body.classList.toggle('noglass', !cs.glass); document.body.classList.toggle('lite', cs.lite); };
+  applyCs();
+  try {
+    const _v = navigator.vibrate ? navigator.vibrate.bind(navigator) : null;
+    if (_v) navigator.vibrate = n => cs.haptic ? _v(n) : false;
+  } catch (e) {}
+
+  function drawStamp(x, W, H) {
+    const d = new Date(), p2 = n => String(n).padStart(2, '0');
+    const t = p2(d.getDate()) + '/' + p2(d.getMonth() + 1) + '/' + d.getFullYear() + '  ' + p2(d.getHours()) + ':' + p2(d.getMinutes());
+    const fs = Math.max(14, Math.round(Math.min(W, H) * 0.032));
+    x.font = '600 ' + fs + 'px system-ui, sans-serif';
+    x.textAlign = 'right'; x.textBaseline = 'alphabetic';
+    x.shadowColor = 'rgba(0,0,0,.7)'; x.shadowBlur = fs * 0.3;
+    x.fillStyle = '#ffb74d';
+    x.fillText(t, W - fs, H - fs);
+    x.shadowBlur = 0;
+  }
+
+  let sndCtx = null;
+  function shutterSound() {
+    if (!cs.sound) return;
+    try {
+      sndCtx = sndCtx || new (window.AudioContext || window.webkitAudioContext)();
+      const t = sndCtx.currentTime, o = sndCtx.createOscillator(), g = sndCtx.createGain();
+      o.type = 'square';
+      o.frequency.setValueAtTime(1900, t); o.frequency.exponentialRampToValueAtTime(320, t + 0.05);
+      g.gain.setValueAtTime(0.16, t); g.gain.exponentialRampToValueAtTime(0.001, t + 0.1);
+      o.connect(g); g.connect(sndCtx.destination); o.start(t); o.stop(t + 0.11);
+    } catch (e) {}
+  }
+
+  // Sheet pengaturan
+  (function buildSettings() {
+    const sw = (k, t, sub) => '<div class="srow"><div>' + t + (sub ? '<small>' + sub + '</small>' : '') + '</div><button class="sw' + (cs[k] ? ' on' : '') + '" data-sk="' + k + '" aria-label="' + t + '"></button></div>';
+    $('setBody').innerHTML =
+      '<div class="srow"><div>Kualitas foto<small>Makin tinggi, file makin besar</small></div><div class="sq">' +
+      ['Hemat', 'Tinggi', 'Maks'].map((t, i) => '<button data-q="' + i + '" class="' + (cs.q === i ? 'on' : '') + '">' + t + '</button>').join('') + '</div></div>' +
+      sw('stamp', 'Stempel tanggal dan jam', 'Tercetak di pojok kanan bawah foto') +
+      sw('sound', 'Suara rana') + sw('haptic', 'Getar') +
+      sw('glass', 'Efek kaca buram', 'Matikan jika kamera terasa berat') +
+      sw('lite', 'Animasi ringan', 'Matikan hampir semua animasi');
+  })();
+  $('setBody').addEventListener('click', e => {
+    const b = e.target.closest('button');
+    if (!b) return;
+    if (b.dataset.sk) {
+      const k = b.dataset.sk; cs[k] = !cs[k]; b.classList.toggle('on', cs[k]);
+      if (k === 'sound' && cs.sound) shutterSound();
+      if (k === 'haptic' && cs.haptic && navigator.vibrate) navigator.vibrate(15);
+    } else if (b.dataset.q !== undefined) {
+      cs.q = +b.dataset.q;
+      b.parentNode.querySelectorAll('button').forEach(x => x.classList.toggle('on', x === b));
+    }
+    saveCs(); applyCs();
+  });
+  const openSettings = () => showAnim($('settings'), 'flex');
+  const closeSettings = () => hideAnim($('settings'));
+  $('setBtn').onclick = openSettings;
+  $('setClose').onclick = closeSettings;
+  $('settings').addEventListener('click', e => { if (e.target === $('settings')) closeSettings(); });
+  dragDismiss(document.querySelector('#settings .sheet'), t => !!t.closest('.shHead'), closeSettings, false);
+
+  // Tab galeri
+  let galF = 'all';
+  $('gTabs').addEventListener('click', e => {
+    const b = e.target.closest('button[data-f]');
+    if (!b) return;
+    galF = b.dataset.f;
+    $('gTabs').querySelectorAll('button').forEach(x => x.classList.toggle('on', x === b));
+    openGallery();
+  });
+
+  // Editor foto
+  const ED = { img: null, rot: 0, flip: false, b: 0, c: 0, s: 0, w: 0, f: 0 };
+  const EFILT = [['Asli', 0, 0, 0, 0], ['Vivid', 5, 20, 45, 5], ['Dramatis', -5, 45, -10, 0], ['Mono', 0, 25, -100, 0], ['Retro', 8, -10, -25, 45], ['Sejuk', 3, 0, 10, -50], ['Hangat', 4, 5, 15, 40]];
+  $('edFilters').innerHTML = EFILT.map((f, i) => '<button data-i="' + i + '" class="' + (i === 0 ? 'on' : '') + '">' + f[0] + '</button>').join('');
+  const EDS = [['edB', 'b', 'edBv'], ['edC', 'c', 'edCv2'], ['edS', 's', 'edSv'], ['edW', 'w', 'edWv']];
+  function edSync() {
+    EDS.forEach(r => { $(r[0]).value = ED[r[1]]; $(r[2]).textContent = ED[r[1]]; });
+    $('edFilters').querySelectorAll('button').forEach((x, i) => x.classList.toggle('on', i === ED.f));
+  }
+  let edRaf = 0;
+  function edQueue() { if (!edRaf) edRaf = requestAnimationFrame(() => { edRaf = 0; edRender(); }); }
+  function edOriented(maxSide) {
+    const iw = ED.img.width, ih = ED.img.height, odd = ED.rot % 2 === 1;
+    const sw = odd ? ih : iw, sh = odd ? iw : ih;
+    const sc = maxSide ? Math.min(1, maxSide / Math.max(sw, sh)) : 1;
+    const W = Math.max(1, Math.round(sw * sc)), H = Math.max(1, Math.round(sh * sc));
+    const c = document.createElement('canvas'); c.width = W; c.height = H;
+    const x = c.getContext('2d', { willReadFrequently: true });
+    x.imageSmoothingQuality = 'high';
+    x.translate(W / 2, H / 2);
+    x.scale(ED.flip ? -1 : 1, 1);
+    x.rotate(ED.rot * Math.PI / 2);
+    x.drawImage(ED.img, -iw * sc / 2, -ih * sc / 2, iw * sc, ih * sc);
+    return c;
+  }
+  function edApply(c) {
+    const x = c.getContext('2d'), id = x.getImageData(0, 0, c.width, c.height), d = id.data;
+    const bm = 1 + ED.b / 100 * 0.6, ct = 1 + ED.c / 100 * 0.8, st = 1 + ED.s / 100, wm = ED.w / 100 * 0.14;
+    for (let i = 0; i < d.length; i += 4) {
+      let r = d[i] * (1 + wm) * bm, g = d[i + 1] * bm, b = d[i + 2] * (1 - wm) * bm;
+      r = (r - 128) * ct + 128; g = (g - 128) * ct + 128; b = (b - 128) * ct + 128;
+      const l = 0.299 * r + 0.587 * g + 0.114 * b;
+      d[i] = l + (r - l) * st; d[i + 1] = l + (g - l) * st; d[i + 2] = l + (b - l) * st;
+    }
+    x.putImageData(id, 0, 0);
+  }
+  function edRender() {
+    if (!ED.img) return;
+    const c = edOriented(1100); edApply(c);
+    const cv = $('edCv'); cv.width = c.width; cv.height = c.height;
+    cv.getContext('2d').drawImage(c, 0, 0);
+  }
+  async function openEditor() {
+    if (!current || current.kind === 'video') return;
+    try { ED.img = await createImageBitmap(current.blob); } catch (e) { toast('Foto tidak bisa dibuka untuk diedit.'); return; }
+    Object.assign(ED, { rot: 0, flip: false, b: 0, c: 0, s: 0, w: 0, f: 0 });
+    edSync(); showAnim($('editor'), 'flex'); edRender();
+  }
+  function closeEditor() { hideAnim($('editor')); if (ED.img && ED.img.close) ED.img.close(); ED.img = null; }
+  $('vEdit').onclick = openEditor;
+  $('edCancel').onclick = closeEditor;
+  EDS.forEach(r => { $(r[0]).oninput = () => { ED[r[1]] = +$(r[0]).value; $(r[2]).textContent = ED[r[1]]; ED.f = -1; $('edFilters').querySelectorAll('button').forEach(x => x.classList.remove('on')); edQueue(); }; });
+  $('edFilters').addEventListener('click', e => {
+    const b = e.target.closest('button[data-i]');
+    if (!b) return;
+    const f = EFILT[+b.dataset.i];
+    ED.f = +b.dataset.i; ED.b = f[1]; ED.c = f[2]; ED.s = f[3]; ED.w = f[4];
+    edSync(); edQueue();
+  });
+  $('edRot').onclick = () => { ED.rot = (ED.rot + 1) % 4; edRender(); };
+  $('edFlip').onclick = () => { ED.flip = !ED.flip; edRender(); };
+  $('edReset').onclick = () => { Object.assign(ED, { rot: 0, flip: false, b: 0, c: 0, s: 0, w: 0, f: 0 }); edSync(); edRender(); };
+  $('edSave').onclick = async () => {
+    if (!ED.img) return;
+    toast('Menyimpan…');
+    await sleep(30);
+    const c = edOriented(0); edApply(c);
+    const blob = await new Promise(r => c.toBlob(r, 'image/jpeg', jq()));
+    if (!blob) { toast('Gagal menyimpan.'); return; }
+    await addMedia(blob, 'photo');
+    closeEditor(); closeViewer(); refreshThumb(); openGallery();
+    toast('✨ Salinan hasil edit tersimpan.');
+  };
+
   /* ---------- Mode: malam / potret / foto / video / pro ---------- */
   const MODE_BTN = { action: 'modeAction', long: 'modeLong', doc: 'modeDoc', hdr: 'modeHdr', cinema: 'modeCinema', slomo: 'modeSlomo', lapse: 'modeLapse', night: 'modeNight', portrait: 'modePortrait', photo: 'modePhoto', video: 'modeVideo', pro: 'modePro', scene: 'modeScene', pano: 'modePano', selfie: 'modeSelfie', scan: 'modeScan' };
   function setMode(m) {
@@ -1919,7 +2142,7 @@
       if (!blob) return;
       await addMedia(blob, 'photo');
       if (!quiet) refreshThumb();
-    }, 'image/jpeg', 0.92);
+    }, 'image/jpeg', jq());
   }
 
 
@@ -2015,7 +2238,7 @@
         od[j + 3] = 255;
       }
       tcx.putImageData(out, 0, 0);
-      const blob = await new Promise(r => finalizeCanvas(tc).toBlob(r, 'image/jpeg', 0.92));
+      const blob = await new Promise(r => finalizeCanvas(tc).toBlob(r, 'image/jpeg', jq()));
       if (blob) {
         await addMedia(blob, 'photo');
         refreshThumb();
@@ -2420,14 +2643,16 @@
     return { x: Math.round((W - w) / 2), y: Math.round((H - h) / 2), w, h };
   }
   // Potong sesuai rasio, dan balik kamera depan agar hasil tidak mirror (kecuali dipilih mirror)
-  function finalizeCanvas(src) {
+  function finalizeCanvas(src, noStamp) {
     const W = src.width, H = src.height, c = cropRect(W, H);
     const flip = facing === 'user' && !selfie.mirror;
-    if (c.w === W && c.h === H && !flip) return src;
+    const stamp = cs.stamp && !noStamp;
+    if (c.w === W && c.h === H && !flip && !stamp) return src;
     const t = document.createElement('canvas'); t.width = c.w; t.height = c.h;
     const x = t.getContext('2d');
     if (flip) { x.translate(c.w, 0); x.scale(-1, 1); }
     x.drawImage(src, c.x, c.y, c.w, c.h, 0, 0, c.w, c.h);
+    if (stamp) { x.setTransform(1, 0, 0, 1, 0, 0); drawStamp(x, c.w, c.h); }
     return t;
   }
   function updateCropMask() {
@@ -2580,7 +2805,7 @@
       if (hc < 100 || w < 200) { toast('Panorama gagal: HP terlalu goyang naik-turun.'); return; }
       const oc = document.createElement('canvas'); oc.width = w; oc.height = hc;
       oc.getContext('2d').drawImage(P.wc, P.ox0, yTop, w, hc, 0, 0, w, hc);
-      const blob = await new Promise(r => oc.toBlob(r, 'image/jpeg', 0.92));
+      const blob = await new Promise(r => oc.toBlob(r, 'image/jpeg', jq()));
       if (blob) { await addMedia(blob, 'photo'); refreshThumb(); toast('🌄 Panorama tersimpan (' + w + '×' + hc + ').'); }
     } catch (e) {
       toast('Panorama gagal: ' + e.message);
@@ -2732,6 +2957,7 @@
 
   function doShoot() {
     if (navigator.vibrate) navigator.vibrate(12);
+    if (!isVid(mode) && mode !== 'scan') shutterSound();
     { const sb = $('shutter'); sb.classList.remove('shot'); void sb.offsetWidth; sb.classList.add('shot'); }
     if (mode === 'night') nightShot({ N: 12, gap: 200, night: true });
     else if (mode === 'long') longShot();
@@ -2774,7 +3000,8 @@
 
   async function openGallery() {
     urls.forEach(u => URL.revokeObjectURL(u)); urls = [];
-    const list = await allMedia();
+    const allM = await allMedia();
+    const list = galF === 'all' ? allM : allM.filter(p => p.kind === galF);
     const grid = $('grid'); grid.innerHTML = '';
     $('gCount').textContent = list.length + ' item';
     $('empty').style.display = list.length ? 'none' : 'block';
@@ -2810,6 +3037,10 @@
     if (isVid) { $('vVid').src = u; }
     else { $('vImg').src = u; }
     showAnim($('viewer'), 'flex');
+    $('vEdit').style.display = isVid ? 'none' : 'block';
+    const mb = p.blob.size / 1048576;
+    $('vMeta').textContent = new Date(p.time).toLocaleString('id-ID', { dateStyle: 'medium', timeStyle: 'short' }) + ' · ' + (mb >= 1 ? mb.toFixed(1) : mb.toFixed(2)) + ' MB' + (isVid ? ' · video' : '');
+    if (!isVid) { const im = $('vImg'); im.onload = () => { $('vMeta').textContent += ' · ' + im.naturalWidth + '×' + im.naturalHeight; }; }
   }
   function closeViewer() {
     const v = $('vVid'); v.pause(); v.removeAttribute('src'); v.load();
@@ -2840,7 +3071,7 @@
   };
 
   /* ---------- Auto-update: cek versi terbaru, lalu muat ulang paksa otomatis ---------- */
-  const APP_VERSION = 'v28';
+  const APP_VERSION = 'v29';
   $('ver').textContent = APP_VERSION;
   const vnum = v => parseInt(String(v).replace(/\D/g, ''), 10) || 0;
   let updating = false;
