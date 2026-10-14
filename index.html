@@ -3,14 +3,17 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
+<meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
+<meta http-equiv="Pragma" content="no-cache">
+<meta http-equiv="Expires" content="0">
 <title>Kamera 0.5x</title>
 <style>
   * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
   html, body { margin: 0; height: 100%; background: #000; color: #fff; font-family: system-ui, sans-serif; overflow: hidden; overscroll-behavior: none; }
-  #stage { position: fixed; inset: 0 0 150px 0; background: #000; touch-action: none; }
+  #stage { position: fixed; inset: 0 0 110px 0; background: #000; touch-action: none; }
   #view { width: 100%; height: 100%; display: block; }
   #msg { position: absolute; inset: 0; display: none; align-items: center; justify-content: center; text-align: center; padding: 24px; font-size: 15px; line-height: 1.5; }
-  #zoomLabel { position: absolute; top: 14px; left: 50%; transform: translateX(-50%); padding: 4px 12px; border-radius: 14px; background: rgba(0,0,0,.5); color: #ffd54f; font-size: 14px; font-weight: 600; pointer-events: none; }
+  #zoomLabel { position: absolute; top: 14px; left: 50%; transform: translateX(-50%); padding: 4px 12px; border-radius: 14px; background: rgba(0,0,0,.5); color: #ffd54f; font-size: 14px; font-weight: 600; cursor: pointer; }
   #modeTag { position: absolute; top: 46px; left: 50%; transform: translateX(-50%); font-size: 11px; color: #ddd; text-shadow: 0 0 4px #000; pointer-events: none; }
   #recTimer { position: absolute; top: 66px; left: 50%; transform: translateX(-50%); display: none; padding: 3px 10px; border-radius: 12px; background: rgba(198,40,40,.9); font-size: 13px; font-weight: 600; pointer-events: none; }
   #lensPick { position: absolute; top: 10px; left: 10px; padding: 8px 12px; border-radius: 18px; border: 0; background: rgba(0,0,0,.55); color: #fff; font-size: 13px; }
@@ -21,11 +24,16 @@
   #modes { position: absolute; left: 50%; bottom: 66px; transform: translateX(-50%); display: flex; gap: 4px; background: rgba(0,0,0,.45); border-radius: 16px; padding: 3px; }
   #modes button { border: 0; background: none; color: #ccc; font-size: 12px; font-weight: 600; padding: 6px 14px; border-radius: 13px; }
   #modes button.on { background: #fff; color: #000; }
-  #presets { position: absolute; left: 0; right: 0; bottom: 12px; display: flex; justify-content: center; gap: 10px; }
-  #presets button { min-width: 44px; height: 44px; border-radius: 22px; border: 0; background: rgba(0,0,0,.5); color: #fff; font-size: 14px; font-weight: 600; padding: 0 10px; }
+  #presets { position: absolute; left: 0; right: 0; bottom: 12px; display: flex; justify-content: center; gap: 6px; }
+  #presets button { min-width: 40px; height: 44px; border-radius: 22px; border: 0; background: rgba(0,0,0,.5); color: #fff; font-size: 14px; font-weight: 600; padding: 0 8px; }
+  #presets button#dialBtn { min-width: 62px; font-size: 12px; }
   #presets button.on { background: rgba(255,213,79,.95); color: #000; }
-  #bar { position: fixed; left: 0; right: 0; bottom: 0; height: 150px; background: #111; padding: 10px 16px 16px; display: flex; flex-direction: column; gap: 10px; }
-  #sliderRow { display: flex; align-items: center; gap: 10px; font-size: 13px; }
+  #dial { position: absolute; left: 0; right: 0; bottom: 0; height: 210px; display: none; background: linear-gradient(to top, rgba(0,0,0,.7), rgba(0,0,0,0)); touch-action: none; }
+  #dialCv { width: 100%; height: 100%; display: block; }
+  #dialVal { position: absolute; left: 50%; top: 10px; transform: translateX(-50%); font-size: 20px; font-weight: 700; color: #ffd54f; text-shadow: 0 0 6px #000; pointer-events: none; }
+  #dialClose { position: absolute; right: 10px; top: 8px; width: 36px; height: 36px; border-radius: 18px; border: 0; background: rgba(0,0,0,.55); color: #fff; font-size: 16px; }
+  #bar { position: fixed; left: 0; right: 0; bottom: 0; height: 110px; background: #111; padding: 8px 16px 12px; display: flex; flex-direction: column; gap: 10px; }
+  #sliderRow { display: none; align-items: center; gap: 10px; font-size: 13px; }
   #sliderRow input { flex: 1; }
   #btnRow { display: flex; align-items: center; justify-content: space-between; flex: 1; }
   .side { width: 56px; height: 56px; border-radius: 50%; border: 2px solid #444; background: #222; color: #fff; font-size: 22px; display: flex; align-items: center; justify-content: center; overflow: hidden; padding: 0; }
@@ -41,6 +49,26 @@
   #proc .track { height: 10px; border-radius: 5px; background: #333; overflow: hidden; }
   #procBar { height: 100%; width: 0%; background: #66bb6a; transition: width .2s; }
   #procCancel { margin-top: 22px; padding: 11px 18px; border-radius: 10px; border: 0; background: #444; color: #fff; font-size: 14px; }
+  body { animation: appIn .5s ease-out; }
+  @keyframes appIn { from { opacity: 0; } to { opacity: 1; } }
+  #upd { position: fixed; inset: 0; z-index: 50; display: none; align-items: center; justify-content: center; background: radial-gradient(circle at 50% 40%, rgba(30,60,40,.95), rgba(0,0,0,.97)); opacity: 0; transition: opacity .4s; }
+  #upd.show { display: flex; }
+  #upd.vis { opacity: 1; }
+  #upd .box { width: 78%; max-width: 320px; text-align: center; transform: translateY(14px) scale(.96); transition: transform .5s cubic-bezier(.2,.9,.3,1.2); }
+  #upd.vis .box { transform: none; }
+  #upd .ring { position: relative; width: 74px; height: 74px; margin: 0 auto 22px; }
+  #upd .ring::before, #upd .ring::after { content: ''; position: absolute; inset: 0; border-radius: 50%; }
+  #upd .ring::before { border: 4px solid rgba(255,255,255,.14); }
+  #upd .ring::after { border: 4px solid transparent; border-top-color: #66bb6a; border-right-color: #66bb6a; animation: updSpin .9s linear infinite; }
+  #upd .ring i { position: absolute; inset: 22px; border-radius: 50%; background: #66bb6a; animation: updPulse 1.2s ease-in-out infinite; }
+  #updTitle { font-size: 18px; font-weight: 700; margin-bottom: 6px; }
+  #updSub { font-size: 14px; color: #bbb; min-height: 20px; margin-bottom: 18px; transition: opacity .25s; }
+  #upd .bar { height: 6px; border-radius: 3px; background: rgba(255,255,255,.15); overflow: hidden; }
+  #upd .bar b { display: block; height: 100%; width: 0; border-radius: 3px; background: linear-gradient(90deg, #66bb6a, #aeea00); }
+  #upd.vis .bar b { animation: updFill 2.4s ease-in-out forwards; }
+  @keyframes updSpin { to { transform: rotate(360deg); } }
+  @keyframes updPulse { 0%, 100% { transform: scale(.5); opacity: .5; } 50% { transform: scale(1); opacity: 1; } }
+  @keyframes updFill { 0% { width: 0; } 35% { width: 45%; } 70% { width: 80%; } 100% { width: 100%; } }
   #gallery { position: fixed; inset: 0; background: #0b0b0b; display: none; flex-direction: column; z-index: 10; }
   #gHead { display: flex; align-items: center; justify-content: space-between; padding: 12px 16px; background: #111; }
   #gHead button { background: none; border: 0; color: #fff; font-size: 16px; padding: 6px 4px; }
@@ -67,7 +95,7 @@
   <div id="recTimer">● 00:00</div>
   <button id="lensPick">🔭 Lensa 0.5x</button>
   <button id="stabBtn" class="on">🎯 Stabil setelah rekam: ON</button>
-  <div id="ver">v12</div>
+  <div id="ver"></div>
   <div id="toast"></div>
   <div id="modes">
     <button id="modePhoto" class="on">FOTO</button>
@@ -77,9 +105,15 @@
     <button data-z="0.5">0.5</button>
     <button data-z="1" class="on">1x</button>
     <button data-z="2">2x</button>
+    <button data-z="3">3x</button>
     <button data-z="5">5x</button>
     <button data-z="10">10x</button>
-    <button data-z="100">100x</button>
+    <button id="dialBtn">11–100</button>
+  </div>
+  <div id="dial">
+    <canvas id="dialCv"></canvas>
+    <div id="dialVal">10.0x</div>
+    <button id="dialClose" aria-label="Tutup">✕</button>
   </div>
 </div>
 
@@ -97,11 +131,20 @@
 
 <div id="flash"></div>
 
+<div id="upd">
+  <div class="box">
+    <div class="ring"><i></i></div>
+    <div id="updTitle">Versi baru ditemukan</div>
+    <div id="updSub">Menyiapkan pembaruan…</div>
+    <div class="bar"><b></b></div>
+  </div>
+</div>
+
 <div id="proc">
   <div class="box">
-    <div id="procText">Menstabilkan video… 0%</div>
+    <div id="procText">Memproses video… 0%</div>
     <div class="track"><div id="procBar"></div></div>
-    <button id="procCancel">Batal (simpan tanpa stabilizer)</button>
+    <button id="procCancel">Batal (simpan video asli)</button>
   </div>
 </div>
 
@@ -166,6 +209,8 @@
     uniform vec2 texel;
     uniform vec2 shift;     // koreksi stabilizer (pecahan frame video)
 
+    vec3 S(vec2 q){ return texture2D(tex, q).rgb; }
+
     vec2 toTex(vec2 d){
       d *= cover;
       d.x *= flipX;
@@ -176,7 +221,7 @@
 
     void main(){
       float r2 = dot(uv, uv);
-      vec2 d = uv * (1.0 + 0.25 * k * r2) / (1.0 + 0.25 * k * 1.6) / zoomD;
+      vec2 d = uv * (1.0 + 0.12 * k * r2) / zoomD;
       vec2 t0 = toTex(d) - shift;
 
       float outside = length(max(abs(t0 - 0.5) - 0.5, 0.0));
@@ -187,13 +232,26 @@
       vec2 tr = clamp(c0 + (t - c0) * (1.0 + ca), 0.0, 1.0);
       vec2 tb = clamp(c0 + (t - c0) * (1.0 - ca), 0.0, 1.0);
 
-      vec2 o = texel * (k * r2 * 0.6 + outside * 90.0);
+      vec2 o = texel * (k * r2 * 0.6);
       float g = (texture2D(tex, t).g * 2.0
                + texture2D(tex, t + vec2(o.x, 0.0)).g
                + texture2D(tex, t - vec2(o.x, 0.0)).g
                + texture2D(tex, t + vec2(0.0, o.y)).g
                + texture2D(tex, t - vec2(0.0, o.y)).g) / 6.0;
       vec3 col = vec3(texture2D(tex, tr).r, g, texture2D(tex, tb).b);
+
+      if (outside > 0.0) {
+        // area di luar frame kamera: versi buram dari tepi video (cincin titik)
+        vec2 o1 = texel * (10.0 + outside * 220.0);
+        vec2 o2 = o1 * 2.2;
+        vec3 s = S(t);
+        s += S(t + vec2(o1.x, 0.0)) + S(t - vec2(o1.x, 0.0)) + S(t + vec2(0.0, o1.y)) + S(t - vec2(0.0, o1.y));
+        s += S(t + o1 * 0.7) + S(t - o1 * 0.7) + S(t + vec2(o1.x, -o1.y) * 0.7) + S(t + vec2(-o1.x, o1.y) * 0.7);
+        s += S(t + vec2(o2.x, 0.0)) + S(t - vec2(o2.x, 0.0)) + S(t + vec2(0.0, o2.y)) + S(t - vec2(0.0, o2.y));
+        s += S(t + o2 * 0.7) + S(t - o2 * 0.7) + S(t + vec2(o2.x, -o2.y) * 0.7) + S(t + vec2(-o2.x, o2.y) * 0.7);
+        s /= 17.0;
+        col = mix(col, s, smoothstep(0.0, 0.015, outside));
+      }
 
       col *= 1.0 - k * 0.22 * smoothstep(0.3, 2.0, r2);
       col *= 1.0 - min(outside * 2.5, 0.4);
@@ -336,7 +394,7 @@
   slider.addEventListener('change', () => { sliderDrag = false; });
   slider.addEventListener('touchend', () => { sliderDrag = false; });
 
-  document.querySelectorAll('#presets button').forEach(b => {
+  document.querySelectorAll('#presets button[data-z]').forEach(b => {
     b.onclick = () => { zoomT = clampZ(parseFloat(b.dataset.z)); };
   });
 
@@ -357,11 +415,96 @@
     zoomT = clampZ(zoomT * Math.exp(-e.deltaY * 0.002));
   }, { passive: false });
 
+  /* ---------- Dial putar setengah lingkaran (11–100x), seperti iPhone ---------- */
+  const DMIN = 10, DMAX = 100, DEG = 0.62;      // DEG = radian per satuan ln(zoom)
+  let dialOpen = false, dW = 0, dH = 210, dR = 260, dDpr = 1;
+  const dcv = $('dialCv'), dctx = dcv.getContext('2d');
+
+  function openDial(on) {
+    dialOpen = on;
+    $('dial').style.display = on ? 'block' : 'none';
+    $('presets').style.display = on ? 'none' : 'flex';
+    $('modes').style.display = on ? 'none' : 'flex';
+    if (on) {
+      dDpr = Math.min(window.devicePixelRatio || 1, 2);
+      dW = stage.clientWidth; dH = 210;
+      dcv.width = Math.round(dW * dDpr); dcv.height = Math.round(dH * dDpr);
+      dR = Math.max(dW * 0.62, 230);
+      if (zoomT < DMIN) zoomT = DMIN;
+    }
+  }
+  $('dialBtn').onclick = () => openDial(true);
+  $('dialClose').onclick = () => openDial(false);
+  $('zoomLabel').onclick = () => openDial(!dialOpen);
+
+  let dd = null;
+  dcv.addEventListener('pointerdown', e => {
+    dcv.setPointerCapture(e.pointerId);
+    dd = { x: e.clientX, ln: Math.log(Math.max(DMIN, zoomT)) };
+  });
+  dcv.addEventListener('pointermove', e => {
+    if (!dd) return;
+    const ln = dd.ln - (e.clientX - dd.x) / (dR * DEG);   // geser ke kiri = putar naik
+    zoomT = Math.min(DMAX, Math.max(DMIN, Math.exp(ln)));
+  });
+  const dEnd = () => { dd = null; };
+  dcv.addEventListener('pointerup', dEnd);
+  dcv.addEventListener('pointercancel', dEnd);
+
+  const dTicks = (() => {
+    const set = new Set();
+    for (let v = 10; v <= 100; v += (v < 20 ? 1 : v < 40 ? 2 : v < 60 ? 5 : 10)) set.add(v);
+    for (let v = 10; v <= 100; v += 10) set.add(v);
+    return Array.from(set).sort((a, b) => a - b);
+  })();
+
+  function drawDial() {
+    const c = dctx;
+    c.setTransform(dDpr, 0, 0, dDpr, 0, 0);
+    c.clearRect(0, 0, dW, dH);
+    const cx = dW / 2, cy = dH - 130 + dR;
+    const lz = Math.log(Math.min(DMAX, Math.max(DMIN, zoomC)));
+
+    c.strokeStyle = 'rgba(255,255,255,.35)'; c.lineWidth = 2;
+    c.beginPath(); c.arc(cx, cy, dR, 0, Math.PI * 2); c.stroke();
+
+    c.textAlign = 'center'; c.textBaseline = 'middle'; c.font = '600 13px system-ui, sans-serif';
+    for (const v of dTicks) {
+      const th = (Math.log(v) - lz) * DEG;
+      if (Math.abs(th) > 1.05) continue;
+      const major = v % 10 === 0, mid = v % 5 === 0;
+      const len = major ? 20 : mid ? 14 : 8;
+      const sn = Math.sin(th), cs = Math.cos(th);
+      const px = cx + dR * sn, py = cy - dR * cs;
+      const a = Math.max(0.15, 1 - Math.abs(th) / 1.1);
+      c.strokeStyle = 'rgba(255,255,255,' + a.toFixed(2) + ')'; c.lineWidth = major ? 2 : 1;
+      c.beginPath(); c.moveTo(px, py); c.lineTo(px - len * sn, py + len * cs); c.stroke();
+      if (major) {
+        c.save();
+        c.translate(px - (len + 14) * sn, py + (len + 14) * cs);
+        c.rotate(th);
+        c.fillStyle = 'rgba(255,255,255,' + a.toFixed(2) + ')';
+        c.fillText(String(v), 0, 0);
+        c.restore();
+      }
+    }
+    // penanda posisi (tetap di atas)
+    c.strokeStyle = '#ffd54f'; c.lineWidth = 3;
+    c.beginPath(); c.moveTo(cx, cy - dR - 8); c.lineTo(cx, cy - dR + 32); c.stroke();
+  }
+
   function updateUI() {
     $('zoomLabel').textContent = (zoomC >= 10 ? zoomC.toFixed(0) : zoomC.toFixed(1)) + 'x';
-    document.querySelectorAll('#presets button').forEach(b => {
+    document.querySelectorAll('#presets button[data-z]').forEach(b => {
       b.classList.toggle('on', Math.abs(parseFloat(b.dataset.z) - zoomT) < 0.04);
     });
+    const big = zoomT > 10.04;
+    $('dialBtn').classList.toggle('on', big);
+    $('dialBtn').textContent = big ? Math.round(zoomC) + 'x' : '11–100';
+    if (dialOpen) {
+      drawDial();
+      $('dialVal').textContent = (zoomC >= 10 ? zoomC.toFixed(1) : zoomC.toFixed(1)) + 'x';
+    }
     if (!sliderDrag) slider.value = zToSlider(zoomC);
     if (rec) {
       const s = Math.floor((performance.now() - recStart) / 1000);
@@ -400,9 +543,10 @@
     } else if (lensState === 'hw' && hwCaps) {
       dz = zoomC / hwApplied; kk = 0.25 * kBase; tag = 'Zoom kamera asli';
     } else {
-      dz = Math.max(zoomC, 1); kk = kBase; tag = 'Simulasi (lensa asli tidak terbuka)';
+      dz = zoomC >= 1 ? zoomC : 1 - 0.2 * kBase; kk = kBase; tag = 'Simulasi (lensa asli tidak terbuka)';
     }
     $('modeTag').textContent = zoomC < 0.95 ? tag : '';
+    if (rec) recLog.push({ t: (now - recStart) / 1000, k: kk, dz: dz });
 
     gl.uniform1f(uK, kk);
     gl.uniform1f(uZoom, dz);
@@ -540,79 +684,128 @@
     q.onsuccess = () => res(); q.onerror = () => rej(q.error);
   });
 
-  /* ---------- Stabilisasi setelah rekam (analisis lalu render ulang) ---------- */
+  /* ---------- Render ulang setelah rekam (efek + stabilizer, tanpa membebani preview) ---------- */
   let processing = false, procCancel = false;
+  let recLog = [];   // parameter efek per frame selama merekam: {t, k, dz}
 
   function setProgress(p) {
     p = Math.max(0, Math.min(1, p));
-    const label = p < 0.5 ? 'Menganalisis gerakan' : 'Menyusun video stabil';
+    const label = p < 0.4 && analyzing ? 'Menganalisis gerakan' : 'Menyusun video';
     $('procText').textContent = label + '… ' + Math.round(p * 100) + '%';
     $('procBar').style.width = (p * 100) + '%';
   }
+  let analyzing = false;
   $('procCancel').onclick = () => { procCancel = true; };
 
   function waitEvent(el, ev) { return new Promise(res => el.addEventListener(ev, res, { once: true })); }
 
-  async function stabilizeBlob(blob, durSec) {
+  // Renderer WebGL terpisah (shader sama dengan preview) untuk memproses video hasil rekaman
+  function makeRenderer(cv) {
+    const g = cv.getContext('webgl', { antialias: false, preserveDrawingBuffer: true });
+    if (!g) throw new Error('WebGL tidak tersedia');
+    const mk = (type, src) => { const s = g.createShader(type); g.shaderSource(s, src); g.compileShader(s); return s; };
+    const pr = g.createProgram();
+    g.attachShader(pr, mk(g.VERTEX_SHADER, vsSrc));
+    g.attachShader(pr, mk(g.FRAGMENT_SHADER, fsSrc));
+    g.linkProgram(pr); g.useProgram(pr);
+    const b = g.createBuffer(); g.bindBuffer(g.ARRAY_BUFFER, b);
+    g.bufferData(g.ARRAY_BUFFER, new Float32Array([-1, -1, 1, -1, -1, 1, 1, 1]), g.STATIC_DRAW);
+    const l = g.getAttribLocation(pr, 'p'); g.enableVertexAttribArray(l); g.vertexAttribPointer(l, 2, g.FLOAT, false, 0, 0);
+    const tx = g.createTexture(); g.bindTexture(g.TEXTURE_2D, tx);
+    g.texParameteri(g.TEXTURE_2D, g.TEXTURE_WRAP_S, g.CLAMP_TO_EDGE);
+    g.texParameteri(g.TEXTURE_2D, g.TEXTURE_WRAP_T, g.CLAMP_TO_EDGE);
+    g.texParameteri(g.TEXTURE_2D, g.TEXTURE_MIN_FILTER, g.LINEAR);
+    g.texParameteri(g.TEXTURE_2D, g.TEXTURE_MAG_FILTER, g.LINEAR);
+    const U = n => g.getUniformLocation(pr, n);
+    const u = { k: U('k'), zoom: U('zoomD'), cover: U('cover'), flip: U('flipX'), texel: U('texel'), shift: U('shift') };
+    g.viewport(0, 0, cv.width, cv.height);
+    return (src, p) => {
+      g.bindTexture(g.TEXTURE_2D, tx);
+      g.texImage2D(g.TEXTURE_2D, 0, g.RGB, g.RGB, g.UNSIGNED_BYTE, src);
+      g.uniform1f(u.k, p.k); g.uniform1f(u.zoom, p.dz);
+      g.uniform2f(u.cover, p.cx, p.cy); g.uniform1f(u.flip, p.flip);
+      g.uniform2f(u.texel, 1 / src.videoWidth, 1 / src.videoHeight);
+      g.uniform2f(u.shift, p.sx, p.sy);
+      g.drawArrays(g.TRIANGLE_STRIP, 0, 4);
+    };
+  }
+
+  async function processRaw(blob, durSec, log, useStab) {
     const url = URL.createObjectURL(blob);
     const pv = document.createElement('video');
     pv.playsInline = true; pv.preload = 'auto'; pv.muted = true; pv.src = url;
     let actx = null;
     try {
       await new Promise((res, rej) => { pv.onloadedmetadata = res; pv.onerror = () => rej(new Error('Video tidak bisa dibaca')); });
-      if (!('requestVideoFrameCallback' in pv)) throw new Error('Browser belum mendukung stabilisasi video');
+      if (!('requestVideoFrameCallback' in pv)) throw new Error('Browser belum mendukung pemrosesan video');
+      if (!isFinite(pv.duration)) {
+        pv.currentTime = 1e101;
+        await new Promise(r => { pv.ontimeupdate = () => { pv.ontimeupdate = null; r(); }; setTimeout(r, 3000); });
+        pv.currentTime = 0;
+      }
       durSec = Math.max(durSec, 0.5);
+      const aW = useStab ? 0.4 : 0;     // bobot progress tahap analisis
 
-      // Tahap 1: analisis gerakan setiap frame (kecepatan 2x)
-      const T = [], MX = [], MY = [];
-      let prev = null, g2 = new Uint8Array(SW * SH), g1 = new Uint8Array(SW * SH);
-      pv.playbackRate = 2;
-      await pv.play();
-      await new Promise(res => {
-        const cb = (now, meta) => {
-          if (procCancel) { pv.pause(); return res(); }
-          grabGray(g2, pv);
-          let mx = 0, my = 0;
-          if (prev) { const m = motion(prev, g2); if (m.ok) { mx = m.x / SW; my = m.y / SH; } }
-          T.push(meta.mediaTime); MX.push(mx); MY.push(my);
-          const t = prev || g1; prev = g2; g2 = t;
-          setProgress(Math.min(0.5, meta.mediaTime / durSec * 0.5));
-          if (!pv.ended) pv.requestVideoFrameCallback(cb);
-        };
-        pv.onended = res;
-        pv.requestVideoFrameCallback(cb);
-      });
-      pv.pause();
-      if (procCancel || T.length < 5) return null;
-
-      // Jalur kamera dihaluskan (dua arah waktu) sehingga getaran hilang tapi gerakan pan tetap
-      const n = T.length;
-      const P = new Float64Array(n), Q = new Float64Array(n);
-      for (let i = 1; i < n; i++) { P[i] = P[i - 1] + MX[i]; Q[i] = Q[i - 1] + MY[i]; }
-      const fps = n / Math.max(0.1, T[n - 1] - T[0]);
-      const half = Math.max(2, Math.round(fps * 0.5));
-      const smooth = arr => {
-        const pre = new Float64Array(n + 1);
-        for (let i = 0; i < n; i++) pre[i + 1] = pre[i] + arr[i];
-        const out = new Float64Array(n);
-        for (let i = 0; i < n; i++) {
-          const a = Math.max(0, i - half), b = Math.min(n - 1, i + half);
-          out[i] = (pre[b + 1] - pre[a]) / (b - a + 1);
+      // Tahap 1 (jika stabilizer aktif): analisis gerakan setiap frame, kecepatan 2x
+      let T = [], CX = null, CY = null;
+      if (useStab) {
+        analyzing = true;
+        const MX = [], MY = [];
+        let prev = null, g2 = new Uint8Array(SW * SH), g1 = new Uint8Array(SW * SH);
+        pv.playbackRate = 2;
+        await pv.play();
+        await new Promise(res => {
+          const cb = (now, meta) => {
+            if (procCancel) { pv.pause(); return res(); }
+            grabGray(g2, pv);
+            let mx = 0, my = 0;
+            if (prev) { const m = motion(prev, g2); if (m.ok) { mx = m.x / SW; my = m.y / SH; } }
+            T.push(meta.mediaTime); MX.push(mx); MY.push(my);
+            const t = prev || g1; prev = g2; g2 = t;
+            setProgress(Math.min(aW, meta.mediaTime / durSec * aW));
+            if (!pv.ended) pv.requestVideoFrameCallback(cb);
+          };
+          pv.onended = res;
+          pv.requestVideoFrameCallback(cb);
+        });
+        pv.pause();
+        analyzing = false;
+        if (procCancel) return null;
+        const n = T.length;
+        if (n < 5) { useStab = false; }
+        else {
+          const P = new Float64Array(n), Q = new Float64Array(n);
+          for (let i = 1; i < n; i++) { P[i] = P[i - 1] + MX[i]; Q[i] = Q[i - 1] + MY[i]; }
+          const fps = n / Math.max(0.1, T[n - 1] - T[0]);
+          const half = Math.max(2, Math.round(fps * 0.5));
+          const smooth = arr => {
+            const pre = new Float64Array(n + 1);
+            for (let i = 0; i < n; i++) pre[i + 1] = pre[i] + arr[i];
+            const out = new Float64Array(n);
+            for (let i = 0; i < n; i++) {
+              const a = Math.max(0, i - half), b = Math.min(n - 1, i + half);
+              out[i] = (pre[b + 1] - pre[a]) / (b - a + 1);
+            }
+            return out;
+          };
+          const SX = smooth(P), SY = smooth(Q);
+          CX = new Float64Array(n); CY = new Float64Array(n);
+          for (let i = 0; i < n; i++) {
+            CX[i] = Math.max(-STAB_MAX, Math.min(STAB_MAX, SX[i] - P[i]));
+            CY[i] = Math.max(-STAB_MAX, Math.min(STAB_MAX, SY[i] - Q[i]));
+          }
         }
-        return out;
-      };
-      const SX = smooth(P), SY = smooth(Q);
-      const CX = new Float64Array(n), CY = new Float64Array(n);
-      for (let i = 0; i < n; i++) {
-        CX[i] = Math.max(-STAB_MAX, Math.min(STAB_MAX, SX[i] - P[i]));
-        CY[i] = Math.max(-STAB_MAX, Math.min(STAB_MAX, SY[i] - Q[i]));
       }
 
-      // Tahap 2: render ulang dengan koreksi, kecepatan normal
+      // Tahap 2: render ulang (efek 0.5x/zoom + koreksi stabilizer) dari video mentah, kecepatan normal
       const vw = pv.videoWidth, vh = pv.videoHeight;
-      const W = vw & ~1, H = vh & ~1;
-      const oc = document.createElement('canvas'); oc.width = W; oc.height = H;
-      const octx = oc.getContext('2d');
+      const va = vw / vh, caR = log.ca || va;
+      let ow = vw, oh = vh, ccx = 1, ccy = 1;
+      if (va > caR) { oh = vh; ow = Math.round(vh * caR); ccx = caR / va; }
+      else { ow = vw; oh = Math.round(vw / caR); ccy = va / caR; }
+      const oc = document.createElement('canvas');
+      oc.width = ow & ~1; oc.height = oh & ~1;
+      const render = makeRenderer(oc);
       const cs = oc.captureStream(30);
       try {
         actx = new (window.AudioContext || window.webkitAudioContext)();
@@ -624,11 +817,13 @@
       } catch (e) { actx = null; }
 
       pv.playbackRate = 1;
-      pv.currentTime = 0;
-      await waitEvent(pv, 'seeked');
+      if (pv.currentTime > 0.01) {
+        pv.currentTime = 0;
+        await Promise.race([waitEvent(pv, 'seeked'), new Promise(r => setTimeout(r, 2000))]);
+      }
 
       const mime = pickMime();
-      const opts = { videoBitsPerSecond: 8000000 };
+      const opts = { videoBitsPerSecond: 10000000 };
       if (mime) opts.mimeType = mime;
       const ro = new MediaRecorder(cs, opts);
       const chunks = [];
@@ -639,22 +834,26 @@
       try { await pv.play(); }
       catch (e) { pv.muted = true; await pv.play(); }   // tanpa suara jika browser menolak
 
-      let idx = 0;
-      const sw = vw / STAB_ZOOM, sh = vh / STAB_ZOOM;
+      let idx = 0, li = 0;
       await new Promise(res => {
         const cb = (now, meta) => {
           if (procCancel) { pv.pause(); return res(); }
-          while (idx + 1 < n && T[idx + 1] <= meta.mediaTime) idx++;
-          const sx = (vw - sw) / 2 - CX[idx] * vw;
-          const sy = (vh - sh) / 2 - CY[idx] * vh;
-          octx.drawImage(pv, sx, sy, sw, sh, 0, 0, W, H);
-          setProgress(0.5 + 0.5 * Math.min(1, meta.mediaTime / durSec));
+          const mt = meta.mediaTime;
+          while (li + 1 < log.length && log[li + 1].t <= mt) li++;
+          const lg = log[li] || { k: 0, dz: 1 };
+          let sx = 0, sy = 0;
+          if (CX) {
+            while (idx + 1 < T.length && T[idx + 1] <= mt) idx++;
+            sx = CX[idx]; sy = CY[idx];
+          }
+          render(pv, { k: lg.k, dz: lg.dz * (CX ? STAB_ZOOM : 1), sx, sy, cx: ccx, cy: ccy, flip: log.flip || 1 });
+          setProgress(aW + (1 - aW) * Math.min(1, mt / durSec));
           if (!pv.ended) pv.requestVideoFrameCallback(cb);
         };
         pv.onended = res;
         pv.requestVideoFrameCallback(cb);
       });
-      await new Promise(r => setTimeout(r, 250));
+      await new Promise(r => setTimeout(r, 300));
       if (ro.state !== 'inactive') ro.stop();
       await stopped;
       if (procCancel) return null;
@@ -662,23 +861,24 @@
       setProgress(1);
       return new Blob(chunks, { type });
     } finally {
+      analyzing = false;
       pv.pause(); URL.revokeObjectURL(url);
       if (actx) actx.close().catch(() => {});
     }
   }
 
-  async function processVideo(blob, durSec) {
+  async function processVideo(blob, durSec, log, useStab) {
     processing = true; procCancel = false;
     setProgress(0);
     $('proc').style.display = 'flex';
     let out = null;
-    try { out = await stabilizeBlob(blob, durSec); }
-    catch (e) { toast('Stabilisasi gagal (' + e.message + '). Video asli disimpan.'); }
+    try { out = await processRaw(blob, durSec, log, useStab); }
+    catch (e) { toast('Pemrosesan gagal (' + e.message + '). Video asli disimpan.'); }
     $('proc').style.display = 'none';
     processing = false;
     if (out && out.size) {
       await addMedia(out, 'video');
-      toast('Video stabil tersimpan di galeri.');
+      toast('Video tersimpan di galeri.');
     } else {
       await addMedia(blob, 'video');
       if (procCancel) toast('Dibatalkan. Video asli disimpan.');
@@ -710,7 +910,7 @@
     }, 'image/jpeg', 0.92);
   }
 
-  /* ---------- Rekam video (hasil sudah ber-stabilizer karena merekam kanvas) ---------- */
+  /* ---------- Rekam video: kamera direkam mentah (mulus), efek + stabilizer diterapkan setelah stop ---------- */
   let recStart = 0, recChunks = [], micStream = null;
 
   function pickMime() {
@@ -724,7 +924,7 @@
       return;
     }
     if (video.readyState < 2) return;
-    const vs = canvas.captureStream(30);
+    const vs = new MediaStream(stream.getVideoTracks());
     try {
       micStream = await navigator.mediaDevices.getUserMedia({ audio: true });
       micStream.getAudioTracks().forEach(t => vs.addTrack(t));
@@ -733,7 +933,7 @@
       toast('Mikrofon tidak diizinkan, video direkam tanpa suara.');
     }
     const mime = pickMime();
-    const opts = { videoBitsPerSecond: 8000000 };
+    const opts = { videoBitsPerSecond: 12000000 };
     if (mime) opts.mimeType = mime;
     let r;
     try { r = new MediaRecorder(vs, opts); }
@@ -749,9 +949,14 @@
       $('shutter').classList.remove('rec');
       $('recTimer').style.display = 'none';
       if (!blob.size) return;
-      if (stabOn) await processVideo(blob, durSec);
+      const log = recLog;
+      const needs = stabOn || log.flip < 0 || log.some(l => l.k > 0.001 || Math.abs(l.dz - 1) > 0.001);
+      if (needs) await processVideo(blob, durSec, log, stabOn);
       else { await addMedia(blob, 'video'); refreshThumb(); toast('Video tersimpan di galeri.'); }
     };
+    recLog = [];
+    recLog.ca = canvas.width / canvas.height;
+    recLog.flip = facing === 'user' ? -1 : 1;
     rec = r;
     recStart = performance.now();
     r.start(500);
@@ -847,6 +1052,69 @@
     a.download = name;
     document.body.appendChild(a); a.click(); a.remove();
   };
+
+  /* ---------- Auto-update: cek versi terbaru, lalu muat ulang paksa otomatis ---------- */
+  const APP_VERSION = 'v15';
+  $('ver').textContent = APP_VERSION;
+  const vnum = v => parseInt(String(v).replace(/\D/g, ''), 10) || 0;
+  let updating = false;
+
+  function showUpdate(remote) {
+    const u = $('upd');
+    $('updTitle').textContent = 'Versi baru ditemukan';
+    $('updSub').textContent = APP_VERSION + '  →  ' + remote;
+    u.classList.add('show');
+    requestAnimationFrame(() => requestAnimationFrame(() => u.classList.add('vis')));
+    const steps = [[700, 'Membersihkan cache lama…'], [1500, 'Memuat versi terbaru…'], [2100, 'Memulai ulang…']];
+    steps.forEach(([ms, txt]) => setTimeout(() => {
+      const el = $('updSub'); el.style.opacity = 0;
+      setTimeout(() => { el.textContent = txt; el.style.opacity = 1; }, 180);
+    }, ms));
+  }
+
+  async function doUpdate(remote) {
+    updating = true;
+    showUpdate(remote);
+    try {
+      if ('serviceWorker' in navigator) {
+        const rs = await navigator.serviceWorker.getRegistrations();
+        await Promise.all(rs.map(r => r.unregister()));
+      }
+      if (window.caches) {
+        const ks = await caches.keys();
+        await Promise.all(ks.map(k => caches.delete(k)));
+      }
+    } catch (e) {}
+    try { sessionStorage.setItem('justUpdated', remote); } catch (e) {}
+    setTimeout(() => {
+      location.replace(location.pathname + '?v=' + encodeURIComponent(remote) + '&t=' + Date.now());
+    }, 2600);
+  }
+
+  async function checkUpdate() {
+    if (updating || rec || processing || navigator.onLine === false) return;
+    try {
+      const r = await fetch(location.origin + location.pathname + '?_=' + Date.now(), { cache: 'no-store' });
+      if (!r.ok) return;
+      const m = (await r.text()).match(/APP_VERSION\s*=\s*'([^']+)'/);
+      if (!m || vnum(m[1]) <= vnum(APP_VERSION)) return;
+      const key = 'updTry_' + m[1];
+      const tries = parseInt(sessionStorage.getItem(key) || '0', 10);
+      if (tries >= 2) return;                 // cegah loop jika server masih menyajikan versi lama
+      sessionStorage.setItem(key, String(tries + 1));
+      doUpdate(m[1]);
+    } catch (e) {}
+  }
+
+  try {
+    const ju = sessionStorage.getItem('justUpdated');
+    if (ju) { sessionStorage.removeItem('justUpdated'); setTimeout(() => toast('✨ Berhasil diperbarui ke ' + ju), 600); }
+  } catch (e) {}
+  setTimeout(checkUpdate, 1500);
+  setInterval(checkUpdate, 60000);
+  document.addEventListener('visibilitychange', () => { if (!document.hidden) checkUpdate(); });
+  window.addEventListener('focus', checkUpdate);
+  window.addEventListener('online', checkUpdate);
 
   /* ---------- Mulai ---------- */
   openDB().then(refreshThumb);
